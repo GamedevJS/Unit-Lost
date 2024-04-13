@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { dragBox } from '$lib/stores';
+	import { cursorPosition, dragBox } from '$lib/stores';
 
 	let dragging = false;
 	let left = 0;
@@ -7,37 +7,35 @@
 	let width = 0;
 	let height = 0;
 
-	const dragStateChanged = (db: any) => {
+	const dragStateChanged = (db: any, cp: any) => {
 		if (!db) return;
 		if (!db.mouseDown) {
 			$dragBox.x = 0;
-			$dragBox.moveX = 0;
 			$dragBox.y = 0;
-			$dragBox.moveY = 0;
 			width = 0;
 			height = 0;
 			dragging = false;
 		} else {
-			if (db.moveX === 0 || db.moveY === 0) return;
+			if (cp.x === 0 || cp.x === 0) return;
 			dragging = true;
-			if (db.moveX > db.x) {
+			if (cp.x > db.x) {
 				left = db.x;
-				width = db.moveX - db.x;
+				width = cp.x - db.x;
 			} else {
-				left = db.moveX;
-				width = db.x - db.moveX;
+				left = cp.x;
+				width = db.x - cp.x;
 			}
-			if (db.moveY > db.y) {
+			if (cp.y > db.y) {
 				top = db.y;
-				height = db.moveY - db.y;
+				height = cp.y - db.y;
 			} else {
-				top = db.moveY;
-				height = db.y - db.moveY;
+				top = cp.y;
+				height = db.y - cp.y;
 			}
 		}
 	};
 
-	$: dragStateChanged($dragBox);
+	$: dragStateChanged($dragBox, $cursorPosition);
 </script>
 
 <div

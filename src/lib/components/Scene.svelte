@@ -9,12 +9,13 @@
 		Instance
 	} from '@threlte/extras';
 	import { BoxGeometry, Mesh, MeshStandardMaterial, Vector3 } from 'three';
-	import { dragBox, units, selectedUnit } from '$lib/stores';
+	import { dragBox, cursorPosition, units, selectedUnit, game } from '$lib/stores';
 	import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
 	import { onDestroy } from 'svelte';
 
 	import Peformance from './utils/Peformance.svelte';
 	import Units from './Units.svelte';
+	import Camera from './Camera.svelte';
 
 	interactivity();
 
@@ -62,8 +63,8 @@
 			0.5
 		);
 		selectBox.endPoint.set(
-			($dragBox.moveX / $size.width) * 2 - 1,
-			-($dragBox.moveY / $size.height) * 2 + 1,
+			($cursorPosition.x / $size.width) * 2 - 1,
+			-($cursorPosition.y / $size.height) * 2 + 1,
 			0.5
 		);
 		collection = selectBox.select();
@@ -82,15 +83,13 @@
 
 <Peformance />
 
-<T.PerspectiveCamera makeDefault position={[20, 20, 20]} fov={15}>
-	<OrbitControls enableRotate={true} />
-</T.PerspectiveCamera>
+<Camera />
 
 <T.DirectionalLight intensity={3} position={[5, 10, 8]} />
 <T.AmbientLight intensity={0.6} />
 
 <Grid
-	gridSize={[20, 20]}
+	gridSize={[50, 50]}
 	cellColor={'#46536b'}
 	sectionColor="#ffffff"
 	sectionThickness={0}
@@ -99,50 +98,10 @@
 />
 
 <Units />
-<!-- 
-<InstancedMesh name="units">
-	{#each $units as unit, i (unit.id)}
-		<UnitInstance
-			id={unit.id}
-			moveTo={unit.moveTo}
-			arrayPos={i}
-			on:selected={(e) => {
-				selectUnit(e.detail);
-			}}
-		/>
-	{/each}
-	<T.IcosahedronGeometry args={[0.3, 1]} />
-	<T.MeshStandardMaterial color="#F85122" flatShading />
-</InstancedMesh>
-
-{#each $units as unit, i (unit.id)}
-	<Unit
-		id={unit.id}
-		moveTo={unit.moveTo}
-		selected={unit.selected}
-		arrayPos={i}
-		on:selected={(e) => {
-			selectUnit(e.detail);
-		}}
-	/>
-{/each} -->
-<InstancedMesh>
-	{#each $units as unit, i (unit.id)}
-		{#if unit.selected}
-			<Instance
-				rotation.x={-1.57}
-				scale={0.3}
-				position={[unit.currentPosition.x, 0, unit.currentPosition.z]}
-			/>
-		{/if}
-	{/each}
-	<T.RingGeometry args={[0.8, 1, 12, 1]} />
-	<T.MeshStandardMaterial />
-</InstancedMesh>
 
 <T.Mesh
 	name="ground"
-	scale={[20, 0.1, 20]}
+	scale={[70, 0.1, 70]}
 	position={-0.1}
 	on:pointerdown={(e) => {
 		if (e.nativeEvent.button === 0) {
@@ -155,10 +114,10 @@
 		}
 	}}
 	on:pointermove={(e) => {
+		$cursorPosition.x = e.nativeEvent.clientX;
+		$cursorPosition.y = e.nativeEvent.clientY;
 		if (mouseDown) {
 			mouseDragged = true;
-			$dragBox.moveX = e.nativeEvent.clientX;
-			$dragBox.moveY = e.nativeEvent.clientY;
 		}
 	}}
 	on:pointerup={(e) => {
@@ -169,7 +128,7 @@
 			// left mouse btn
 			$dragBox.mouseDown = false;
 			mouseDown = false;
-			//	selectUnit();
+			$selectedUnit = -1;
 			if (mouseDragged) selectArea();
 		}
 	}}

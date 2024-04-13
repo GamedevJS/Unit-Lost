@@ -2,10 +2,12 @@
 	import { T, useTask } from '@threlte/core';
 	import { InstancedMesh, Instance } from '@threlte/extras';
 	import { selectedUnit, units } from '$lib/stores';
-	import { Vector3 } from 'three';
+	import { Vector3, InstancedMesh as InstancedMeshType } from 'three';
 
 	let arrayUpdated = false;
 	let distance = 0;
+	let unitsMesh: InstancedMeshType;
+	let ringsMesh: InstancedMeshType;
 	const displacement = new Vector3();
 	const velocity = new Vector3();
 
@@ -32,6 +34,7 @@
 			});
 		}
 		$units = $units;
+		console.log(ringsMesh);
 	};
 
 	$: selectUnit($selectedUnit);
@@ -44,12 +47,15 @@
 				if (distance < 0.1) unit.moving = false;
 			}
 		});
-		if (arrayUpdated) $units = $units;
+		if (arrayUpdated) {
+			$units = $units;
+			if (unitsMesh) unitsMesh.computeBoundingSphere();
+		}
 		arrayUpdated = false;
 	});
 </script>
 
-<InstancedMesh name="units">
+<InstancedMesh name="units" bind:ref={unitsMesh}>
 	{#each $units as unit, i (unit.id)}
 		<Instance
 			on:pointerup={(e) => {
@@ -65,4 +71,18 @@
 	{/each}
 	<T.IcosahedronGeometry args={[0.15, 1]} />
 	<T.MeshStandardMaterial color="#F85122" flatShading />
+</InstancedMesh>
+
+<InstancedMesh name="selection rings" frustumCulled={false}>
+	{#each $units as unit, i (unit.id)}
+		{#if unit.selected}
+			<Instance
+				rotation.x={-1.57}
+				scale={0.3}
+				position={[unit.currentPosition.x, 0, unit.currentPosition.z]}
+			/>
+		{/if}
+	{/each}
+	<T.RingGeometry args={[0.8, 1, 12, 1]} />
+	<T.MeshStandardMaterial />
 </InstancedMesh>
