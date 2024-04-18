@@ -39,7 +39,8 @@
 			selected: true,
 			moveTo: new Vector3(row, 0.25, col),
 			currentPosition: new Vector3(row, 0.25, col),
-			moving: false
+			state: 'idle',
+			color: 'white'
 		});
 	}
 
@@ -49,7 +50,7 @@
 			if (unit.selected) {
 				unitCount++;
 				unit.moveTo.set(x + unitCount / 3, 0.25, z + unitCount / 3);
-				unit.moving = true;
+				unit.state = 'moving';
 			}
 		});
 		$units = $units;

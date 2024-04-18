@@ -19,5 +19,8 @@
 		if (e.key === 'd') {
 			$game.dev = !$game.dev;
 		}
+		if (e.key === 'c') {
+			$game.useEdgeCamera = !$game.useEdgeCamera;
+		}
 	}}
 />

@@ -10,6 +10,7 @@
 	let ringsMesh: InstancedMeshType;
 	const displacement = new Vector3();
 	const velocity = new Vector3();
+	const enemyPosition = new Vector3(0, 0, 0);
 
 	const moveVelocity = (start: Vector3, end: Vector3, speed: number) => {
 		displacement.subVectors(end, start);
@@ -41,10 +42,24 @@
 
 	useTask((delta) => {
 		$units.forEach((unit) => {
-			if (unit.moving) {
+			if (unit.state === 'moving') {
 				arrayUpdated = true;
 				unit.currentPosition.add(moveVelocity(unit.currentPosition, unit.moveTo, delta * 2));
-				if (distance < 0.1) unit.moving = false;
+				unit.color = 'blue';
+				if (distance < 0.1) {
+					unit.state = 'idle';
+					unit.color = 'white';
+				}
+			} else if (unit.state === 'idle') {
+				// is enemy nearby?
+				displacement.subVectors(enemyPosition, unit.currentPosition);
+				distance = displacement.length();
+				if (distance < 3) {
+					unit.state = 'attacking';
+					unit.color = 'orange';
+					arrayUpdated = true;
+				}
+			} else if (unit.state === 'attacking') {
 			}
 		});
 		if (arrayUpdated) {
@@ -67,10 +82,11 @@
 				e.stopPropagation();
 			}}
 			position={[unit.currentPosition.x, 0.25, unit.currentPosition.z]}
+			color={unit.color}
 		/>
 	{/each}
 	<T.IcosahedronGeometry args={[0.15, 1]} />
-	<T.MeshStandardMaterial color="#F85122" flatShading />
+	<T.MeshStandardMaterial color="#FFFFFF" />
 </InstancedMesh>
 
 <InstancedMesh name="selection rings" frustumCulled={false}>

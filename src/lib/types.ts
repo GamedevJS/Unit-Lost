@@ -5,5 +5,6 @@ export type Unit = {
 	selected: boolean;
 	moveTo: Vector3;
 	currentPosition: Vector3;
-	moving: boolean;
+	state: 'idle' | 'moving' | 'attacking';
+	color: string;
 };

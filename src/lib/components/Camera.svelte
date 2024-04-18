@@ -32,6 +32,7 @@
 	$: cameraPositionChanged($cameraPosition);
 
 	useTask((delta) => {
+		if (!$game.useEdgeCamera) return;
 		cameraMoved = true;
 		if (moveLeft && moveUp) {
 			position.x -= delta * moveSpeed * 1.5;

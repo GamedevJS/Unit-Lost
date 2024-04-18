@@ -2,7 +2,8 @@ import { writable, type Writable } from 'svelte/store';
 import type { Unit } from '$lib/types';
 
 export const game = writable({
-	dev: false
+	dev: false,
+	useEdgeCamera: false
 });
 
 export const cameraPosition = writable({
