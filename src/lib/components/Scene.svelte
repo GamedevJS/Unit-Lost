@@ -28,7 +28,8 @@
 
 	let row = -10;
 	let col = -10;
-	for (let i = 0; i < 50; i++) {
+	let unitCount = 50;
+	for (let i = 0; i < unitCount; i++) {
 		row++;
 		if (row > 10) {
 			row = -10;
@@ -36,21 +37,46 @@
 		}
 		$units.push({
 			id: i,
+			factionId: 0,
+			targetId: 0,
 			selected: true,
 			moveTo: new Vector3(row, 0.25, col),
 			currentPosition: new Vector3(row, 0.25, col),
 			state: 'idle',
-			color: 'white'
+			color: 'white',
+			hold: false,
+			health: 1
+		});
+	}
+	col = 5;
+	for (let i = 0; i < unitCount; i++) {
+		row++;
+		if (row > 10) {
+			row = -10;
+			col++;
+		}
+		$units.push({
+			id: i + unitCount,
+			targetId: 0,
+			factionId: 1,
+			selected: true,
+			moveTo: new Vector3(row, 0.25, col),
+			currentPosition: new Vector3(row, 0.25, col),
+			state: 'idle',
+			color: 'white',
+			hold: true,
+			health: 1
 		});
 	}
 
 	const moveUnits = (x: number, z: number) => {
 		let unitCount = -1;
 		$units.forEach((unit, i) => {
-			if (unit.selected) {
+			if (unit.selected && unit.factionId === 0) {
 				unitCount++;
 				unit.moveTo.set(x + unitCount / 3, 0.25, z + unitCount / 3);
 				unit.state = 'moving';
+				unit.targetId = -1;
 			}
 		});
 		$units = $units;
