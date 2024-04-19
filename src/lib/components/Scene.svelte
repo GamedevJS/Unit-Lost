@@ -25,6 +25,7 @@
 	let mouseDown = false;
 	let mouseDragged = false;
 	let collection: any[] = [];
+	let moveTarget = new Vector3();
 
 	let row = -10;
 	let col = -10;
@@ -64,23 +65,10 @@
 			currentPosition: new Vector3(row, 0.25, col),
 			state: 'idle',
 			color: 'white',
-			hold: true,
+			hold: false,
 			health: 1
 		});
 	}
-
-	const moveUnits = (x: number, z: number) => {
-		let unitCount = -1;
-		$units.forEach((unit, i) => {
-			if (unit.selected && unit.factionId === 0) {
-				unitCount++;
-				unit.moveTo.set(x + unitCount / 3, 0.25, z + unitCount / 3);
-				unit.state = 'moving';
-				unit.targetId = -1;
-			}
-		});
-		$units = $units;
-	};
 
 	const selectArea = () => {
 		selectBox.camera = $camera;
@@ -97,7 +85,11 @@
 		collection = selectBox.select();
 		// @ts-ignore
 		let selectedInstances = Object.values(selectBox.instances)[0] as number[];
-		$selectedUnit = selectedInstances;
+		let selectedUnits: number[] = [];
+		selectedInstances.forEach((index) => {
+			selectedUnits.push($units[index].id);
+		});
+		$selectedUnit = selectedUnits;
 		/* selectedInstances.forEach((id) => {
 			//	selectUnit(id, true);
 		}); */
@@ -124,7 +116,7 @@
 	position.y={-0.01}
 />
 
-<Units />
+<Units {moveTarget} />
 
 <T.Mesh
 	name="ground"
@@ -150,7 +142,9 @@
 	on:pointerup={(e) => {
 		if (e.nativeEvent.button === 2) {
 			// right mouse btn
-			moveUnits(e.point.x, e.point.z);
+			moveTarget.set(e.point.x, 0, e.point.z);
+			moveTarget = moveTarget;
+			//moveUnits(e.point.x, e.point.z);
 		} else if (e.nativeEvent.button === 0) {
 			// left mouse btn
 			$dragBox.mouseDown = false;

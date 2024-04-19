@@ -3,8 +3,9 @@
 	import { InstancedMesh, Instance } from '@threlte/extras';
 	import { selectedUnit, units } from '$lib/stores';
 	import { Vector3, InstancedMesh as InstancedMeshType } from 'three';
-	import { interval } from '$lib/animation';
 	import type { Unit } from '$lib/types';
+
+	export let moveTarget: Vector3;
 
 	let arrayUpdated = false;
 	let distance = 0;
@@ -25,7 +26,7 @@
 	};
 
 	const selectUnit = (su: number | number[]) => {
-		if (!su) return;
+		if (su === undefined) return;
 		if (typeof su === 'number') {
 			$units.forEach((unit) => {
 				unit.selected = unit.id === su ? true : false;
@@ -41,6 +42,22 @@
 	};
 
 	$: selectUnit($selectedUnit);
+
+	const moveUnits = (destination: Vector3) => {
+		if (!destination) return;
+		let unitCount = -1;
+		$units.forEach((unit, i) => {
+			if (unit.selected && unit.factionId === 0) {
+				unitCount++;
+				unit.moveTo.set(destination.x + unitCount / 3, 0.25, destination.z + unitCount / 3);
+				unit.state = 'moving';
+				unit.targetId = -1;
+			}
+		});
+		$units = $units;
+	};
+
+	$: moveUnits(moveTarget);
 
 	const findCloseEnemy = (unit: Unit) => {
 		for (let i = 0; i < $units.length; i++) {
@@ -63,6 +80,27 @@
 		return { target: $units[targetIndex], targetIndex };
 	};
 
+	const setStateIdle = (unit: Unit) => {
+		unit.state = 'idle';
+		unit.targetId = -1;
+		unit.color = 'white';
+		return unit;
+	};
+
+	const setStateAttacking = (unit: Unit, targetId: number) => {
+		unit.state = 'attacking';
+		unit.color = 'orange';
+		unit.targetId = targetId;
+		return unit;
+	};
+
+	const setStateMoving = (unit: Unit, targetId = -1, moveTo?: Vector3) => {
+		unit.state = 'moving';
+		unit.color = 'blue';
+		if (targetId > -1) unit.targetId = targetId;
+		return unit;
+	};
+
 	// todo - try a counter system where we update a faction every 15 frames
 
 	let closeEnemy: Unit | undefined;
@@ -73,11 +111,14 @@
 		$units.forEach((unit, index, object) => {
 			if (unit.state === 'moving') {
 				arrayUpdated = true;
-
 				if (unit.targetId > -1) {
 					// folowing a target
 					({ target } = findTarget(unit.targetId));
-					if (!target) return;
+					if (!target) {
+						// target is dead
+						unit = setStateIdle(unit);
+						return;
+					}
 					displacement.subVectors(target.currentPosition, unit.currentPosition);
 					distance = displacement.length();
 					if (distance > 2.5) {
@@ -85,8 +126,7 @@
 							moveVelocity(unit.currentPosition, target.currentPosition, delta * 2)
 						);
 					} else {
-						unit.state = 'attacking';
-						unit.color = 'orange';
+						unit = setStateAttacking(unit, target.id);
 					}
 				} else {
 					// moving to cursor click
@@ -95,13 +135,9 @@
 					if (distance < 0.1) {
 						closeEnemy = findCloseEnemy(unit);
 						if (closeEnemy) {
-							unit.state = 'attacking';
-							unit.targetId = closeEnemy.id;
-							unit.color = 'orange';
-							arrayUpdated = true;
+							unit = setStateAttacking(unit, closeEnemy.id);
 						} else {
-							unit.state = 'idle';
-							unit.color = 'white';
+							unit = setStateIdle(unit);
 						}
 					}
 				}
@@ -110,20 +146,15 @@
 				// is enemy nearby?
 				closeEnemy = findCloseEnemy(unit);
 				if (closeEnemy) {
-					unit.state = 'attacking';
-					unit.targetId = closeEnemy.id;
-					unit.color = 'orange';
 					arrayUpdated = true;
+					unit = setStateAttacking(unit, closeEnemy.id);
 				}
 			} else if (unit.state === 'attacking') {
 				arrayUpdated = true;
 				({ target, targetIndex } = findTarget(unit.targetId));
 				if (!target) {
-					// target died
-					console.log('dead');
-					unit.state = 'idle';
-					unit.targetId = -1;
-					unit.color = 'white';
+					// target is dead
+					unit = setStateIdle(unit);
 					return;
 				}
 				$units[targetIndex].health -= delta;
@@ -132,12 +163,10 @@
 				if (distance > 3) {
 					// follow target
 					if (unit.targetId > -1 && unit.hold == false) {
-						unit.state = 'moving';
+						unit = setStateMoving(unit, unit.targetId);
 						unit.color = 'green';
 					} else {
-						unit.state = 'idle';
-						unit.targetId = -1;
-						unit.color = 'white';
+						unit = setStateIdle(unit);
 					}
 				}
 			}
@@ -158,9 +187,18 @@
 	{#each $units as unit, i (unit.id)}
 		<Instance
 			on:pointerup={(e) => {
-				//selected = true;
 				e.stopPropagation();
-				$selectedUnit = unit.id;
+				if (e.nativeEvent.button === 0) {
+					$selectedUnit = unit.id;
+				} else if (e.nativeEvent.button === 2) {
+					if (unit.factionId === 0) return;
+					$units.forEach((u, index, object) => {
+						if (u.selected) {
+							object[index] = setStateMoving(object[index], unit.id);
+						}
+					});
+					$units = $units;
+				}
 			}}
 			on:pointerdown={(e) => {
 				e.stopPropagation();
