@@ -54,7 +54,6 @@
 		$units.forEach((unit, i) => {
 			if (unit.selected && unit.factionId === 0) {
 				if (unitCount > 1) {
-					console.log(gridPositions[gridCount]);
 					destination.set(gridPositions[gridCount].x, destination.y, gridPositions[gridCount].y);
 				}
 				unit = setStateMoving(unit, '', unit.moveTo.copy(destination));
