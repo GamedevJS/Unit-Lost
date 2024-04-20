@@ -26,6 +26,7 @@
 	let mouseDragged = false;
 	let collection: any[] = [];
 	let moveTarget = new Vector3();
+	let movePointOpacity = 0;
 
 	let row = -10;
 	let col = -10;
@@ -37,10 +38,10 @@
 			col++;
 		}
 		$units.push({
-			id: i,
+			id: crypto.randomUUID(),
 			factionId: 0,
-			targetId: 0,
-			selected: true,
+			targetId: '',
+			selected: false,
 			moveTo: new Vector3(row, 0.25, col),
 			currentPosition: new Vector3(row, 0.25, col),
 			state: 'idle',
@@ -57,10 +58,10 @@
 			col++;
 		}
 		$units.push({
-			id: i + unitCount,
-			targetId: 0,
+			id: crypto.randomUUID(),
+			targetId: '',
 			factionId: 1,
-			selected: true,
+			selected: false,
 			moveTo: new Vector3(row, 0.25, col),
 			currentPosition: new Vector3(row, 0.25, col),
 			state: 'idle',
@@ -85,7 +86,7 @@
 		collection = selectBox.select();
 		// @ts-ignore
 		let selectedInstances = Object.values(selectBox.instances)[0] as number[];
-		let selectedUnits: number[] = [];
+		let selectedUnits: string[] = [];
 		selectedInstances.forEach((index) => {
 			selectedUnits.push($units[index].id);
 		});
@@ -94,6 +95,10 @@
 			//	selectUnit(id, true);
 		}); */
 	};
+
+	useTask((delta) => {
+		movePointOpacity -= delta * 2;
+	});
 
 	onDestroy(() => {
 		$units = [];
@@ -144,18 +149,34 @@
 			// right mouse btn
 			moveTarget.set(e.point.x, 0, e.point.z);
 			moveTarget = moveTarget;
-			//moveUnits(e.point.x, e.point.z);
+
+			if (
+				(typeof $selectedUnit === 'number' && $selectedUnit > -1) ||
+				(Array.isArray($selectedUnit) && $selectedUnit.length > 0)
+			)
+				movePointOpacity = 1;
 		} else if (e.nativeEvent.button === 0) {
 			// left mouse btn
 			$dragBox.mouseDown = false;
 			mouseDown = false;
-			$selectedUnit = -1;
+			$selectedUnit = '';
 			if (mouseDragged) selectArea();
 		}
 	}}
 >
 	<T.BoxGeometry />
 	<T.MeshBasicMaterial visible={false} />
+</T.Mesh>
+
+<T.Mesh
+	name="move point"
+	rotation.x={-1.57}
+	scale={0.3}
+	position.x={moveTarget.x}
+	position.z={moveTarget.z}
+>
+	<T.RingGeometry args={[0.8, 1, 24, 1]} />
+	<T.MeshStandardMaterial color="green" transparent opacity={movePointOpacity} />
 </T.Mesh>
 
 <svelte:window

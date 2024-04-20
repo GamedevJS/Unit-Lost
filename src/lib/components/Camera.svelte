@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { T, useTask, useThrelte } from '@threlte/core';
 	import { OrbitControls } from '@threlte/extras';
-	import { game, cursorPosition, cameraPosition } from '$lib/stores';
+	import { game, cursorPosition, cameraPosition, cameraGroundPosition } from '$lib/stores';
 	import { Vector3 } from 'three';
 
 	const { size } = useThrelte();
@@ -63,6 +63,7 @@
 			position.z = position.z > 40 ? 40 : position.z;
 			position.z = position.z < 0 ? 0 : position.z;
 			$cameraPosition = { x: position.x, z: position.z, setByMap: false };
+			//console.log('-- camera --', $cameraPosition, $cameraGroundPosition);
 		}
 	});
 </script>

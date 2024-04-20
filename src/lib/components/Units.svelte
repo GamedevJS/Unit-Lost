@@ -4,6 +4,7 @@
 	import { selectedUnit, units } from '$lib/stores';
 	import { Vector3, InstancedMesh as InstancedMeshType } from 'three';
 	import type { Unit } from '$lib/types';
+	import { deepCloneAttribute } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 	export let moveTarget: Vector3;
 
@@ -11,6 +12,8 @@
 	let distance = 0;
 	let unitsMesh: InstancedMeshType;
 	let ringsMesh: InstancedMeshType;
+	let attackPointOpacity = 0;
+	let attackPoint = new Vector3();
 	const displacement = new Vector3();
 	const velocity = new Vector3();
 
@@ -25,9 +28,9 @@
 		}
 	};
 
-	const selectUnit = (su: number | number[]) => {
+	const selectUnit = (su: string | string[]) => {
 		if (su === undefined) return;
-		if (typeof su === 'number') {
+		if (typeof su === 'string') {
 			$units.forEach((unit) => {
 				unit.selected = unit.id === su ? true : false;
 			});
@@ -38,7 +41,6 @@
 			});
 		}
 		$units = $units;
-		console.log(ringsMesh);
 	};
 
 	$: selectUnit($selectedUnit);
@@ -51,7 +53,7 @@
 				unitCount++;
 				unit.moveTo.set(destination.x + unitCount / 3, 0.25, destination.z + unitCount / 3);
 				unit.state = 'moving';
-				unit.targetId = -1;
+				unit.targetId = '';
 			}
 		});
 		$units = $units;
@@ -73,7 +75,7 @@
 		return undefined;
 	};
 
-	const findTarget = (targetId: number) => {
+	const findTarget = (targetId: string) => {
 		let targetIndex = $units.findIndex((sibling) => {
 			return sibling.id === targetId;
 		});
@@ -82,22 +84,22 @@
 
 	const setStateIdle = (unit: Unit) => {
 		unit.state = 'idle';
-		unit.targetId = -1;
+		unit.targetId = '';
 		unit.color = 'white';
 		return unit;
 	};
 
-	const setStateAttacking = (unit: Unit, targetId: number) => {
+	const setStateAttacking = (unit: Unit, targetId: string) => {
 		unit.state = 'attacking';
 		unit.color = 'orange';
 		unit.targetId = targetId;
 		return unit;
 	};
 
-	const setStateMoving = (unit: Unit, targetId = -1, moveTo?: Vector3) => {
+	const setStateMoving = (unit: Unit, targetId = '', moveTo?: Vector3) => {
 		unit.state = 'moving';
 		unit.color = 'blue';
-		if (targetId > -1) unit.targetId = targetId;
+		if (targetId) unit.targetId = targetId;
 		return unit;
 	};
 
@@ -111,7 +113,7 @@
 		$units.forEach((unit, index, object) => {
 			if (unit.state === 'moving') {
 				arrayUpdated = true;
-				if (unit.targetId > -1) {
+				if (unit.targetId) {
 					// folowing a target
 					({ target } = findTarget(unit.targetId));
 					if (!target) {
@@ -162,7 +164,7 @@
 				distance = displacement.length();
 				if (distance > 3) {
 					// follow target
-					if (unit.targetId > -1 && unit.hold == false) {
+					if (unit.targetId && unit.hold == false) {
 						unit = setStateMoving(unit, unit.targetId);
 						unit.color = 'green';
 					} else {
@@ -180,6 +182,7 @@
 			if (unitsMesh) unitsMesh.computeBoundingSphere();
 		}
 		arrayUpdated = false;
+		attackPointOpacity -= delta * 2;
 	});
 </script>
 
@@ -192,12 +195,19 @@
 					$selectedUnit = unit.id;
 				} else if (e.nativeEvent.button === 2) {
 					if (unit.factionId === 0) return;
+					let unitWillAttack = false;
 					$units.forEach((u, index, object) => {
 						if (u.selected) {
 							object[index] = setStateMoving(object[index], unit.id);
+							unitWillAttack = true;
 						}
 					});
 					$units = $units;
+					if (unitWillAttack) {
+						console.log(e.object.position.x);
+						attackPoint = e.object.position;
+						attackPointOpacity = 1;
+					}
 				}
 			}}
 			on:pointerdown={(e) => {
@@ -224,3 +234,14 @@
 	<T.RingGeometry args={[0.8, 1, 12, 1]} />
 	<T.MeshStandardMaterial />
 </InstancedMesh>
+
+<T.Mesh
+	name="attack point"
+	rotation.x={-1.57}
+	scale={0.3}
+	position.x={attackPoint.x}
+	position.z={attackPoint.z}
+>
+	<T.RingGeometry args={[0.8, 1, 24, 1]} />
+	<T.MeshStandardMaterial color="red" transparent opacity={attackPointOpacity} />
+</T.Mesh>

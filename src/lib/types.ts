@@ -1,9 +1,9 @@
 import type { Vector3 } from 'three';
 
 export type Unit = {
-	id: number;
+	id: string;
 	factionId: number;
-	targetId: number;
+	targetId: string;
 	selected: boolean;
 	moveTo: Vector3;
 	currentPosition: Vector3;
