@@ -3,8 +3,8 @@
 	import { InstancedMesh, Instance } from '@threlte/extras';
 	import { selectedUnit, units } from '$lib/stores';
 	import { Vector3, InstancedMesh as InstancedMeshType } from 'three';
+	import { generateGrid } from '$lib/utils';
 	import type { Unit } from '$lib/types';
-	import { deepCloneAttribute } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 	export let moveTarget: Vector3;
 
@@ -47,13 +47,18 @@
 
 	const moveUnits = (destination: Vector3) => {
 		if (!destination) return;
-		let unitCount = -1;
+		const unitCount = $units.filter((unit) => unit.selected && unit.factionId === 0).length;
+		if (unitCount <= 0) return;
+		const gridPositions = generateGrid(unitCount, { x: destination.x, y: destination.z });
+		let gridCount = 0;
 		$units.forEach((unit, i) => {
 			if (unit.selected && unit.factionId === 0) {
-				unitCount++;
-				unit.moveTo.set(destination.x + unitCount / 3, 0.25, destination.z + unitCount / 3);
-				unit.state = 'moving';
-				unit.targetId = '';
+				if (unitCount > 1) {
+					console.log(gridPositions[gridCount]);
+					destination.set(gridPositions[gridCount].x, destination.y, gridPositions[gridCount].y);
+				}
+				unit = setStateMoving(unit, '', unit.moveTo.copy(destination));
+				gridCount++;
 			}
 		});
 		$units = $units;
@@ -99,7 +104,8 @@
 	const setStateMoving = (unit: Unit, targetId = '', moveTo?: Vector3) => {
 		unit.state = 'moving';
 		unit.color = 'blue';
-		if (targetId) unit.targetId = targetId;
+		if (moveTo) unit.moveTo = moveTo;
+		unit.targetId = targetId;
 		return unit;
 	};
 
@@ -223,15 +229,29 @@
 
 <InstancedMesh name="selection rings" frustumCulled={false}>
 	{#each $units as unit, i (unit.id)}
-		{#if unit.selected}
-			<Instance
-				rotation.x={-1.57}
-				scale={0.3}
-				position={[unit.currentPosition.x, 0, unit.currentPosition.z]}
-			/>
-		{/if}
+		<Instance
+			rotation.x={-1.57}
+			scale={unit.selected ? 0.3 : 0}
+			position={[unit.currentPosition.x, 0, unit.currentPosition.z]}
+		/>
 	{/each}
-	<T.RingGeometry args={[0.8, 1, 12, 1]} />
+	<T.RingGeometry args={[0.8, 1, 24, 1]} />
+	<T.MeshStandardMaterial />
+</InstancedMesh>
+
+<InstancedMesh name="health bars" frustumCulled={false}>
+	{#each $units as unit, i (unit.id)}
+		<!-- {#if unit.selected} -->
+		<Instance
+			rotation.x={-1.57}
+			rotation.z={-0.78}
+			scale.y={unit.health}
+			position={[unit.currentPosition.x, 0.6, unit.currentPosition.z]}
+			color={unit.health > 0.5 ? 'green' : 'red'}
+		/>
+		<!-- {/if} -->
+	{/each}
+	<T.PlaneGeometry args={[0.06, 0.4]} />
 	<T.MeshStandardMaterial />
 </InstancedMesh>
 
