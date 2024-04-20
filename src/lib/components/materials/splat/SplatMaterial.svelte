@@ -35,6 +35,15 @@
 
 	$: texturesLoaded($textures);
 
+	$: sm.uniforms.blendTexture.value = blendImage;
+
+	/* 	const imageChanged = (bi: any) => {
+		console.log('changed');
+		sm.uniforms.blendTexture.value = bi;
+	};
+
+	$: imageChanged(blendImage); */
+
 	const sm = new ShaderMaterial({
 		uniforms: {
 			colors: {

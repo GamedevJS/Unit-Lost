@@ -6,21 +6,29 @@
 		OrbitControls,
 		Outlines,
 		InstancedMesh,
-		Instance
+		Instance,
+		useTexture
 	} from '@threlte/extras';
 	import { BoxGeometry, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 	import { dragBox, cursorPosition, units, selectedUnit, game } from '$lib/stores';
 	import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
+
 	import { onDestroy } from 'svelte';
 
 	import Peformance from './utils/Peformance.svelte';
 	import Units from './Units.svelte';
 	import Camera from './Camera.svelte';
+	import SplatMaterial from '$lib/components/materials/splat/SplatMaterial.svelte';
+	import Fog from './Fog.svelte';
 
 	interactivity();
 
-	const { camera, scene, size } = useThrelte();
+	const blendImage = useTexture('groundSplat.png');
+
+	const { camera, scene, size, renderer } = useThrelte();
 	let selectBox = new SelectionBox($camera, scene);
+
+	console.log(renderer.getContextAttributes());
 
 	let mouseDown = false;
 	let mouseDragged = false;
@@ -38,7 +46,7 @@
 			col++;
 		}
 		$units.push({
-			id: crypto.randomUUID(),
+			id: Math.ceil(Math.random() * 100000).toString(),
 			factionId: 0,
 			targetId: '',
 			selected: false,
@@ -58,7 +66,7 @@
 			col++;
 		}
 		$units.push({
-			id: crypto.randomUUID(),
+			id: Math.ceil(Math.random() * 100000).toString(),
 			targetId: '',
 			factionId: 1,
 			selected: false,
@@ -108,6 +116,8 @@
 <Peformance />
 
 <Camera />
+
+<Fog />
 
 <T.DirectionalLight intensity={3} position={[5, 10, 8]} />
 <T.AmbientLight intensity={0.6} />
@@ -165,7 +175,17 @@
 	}}
 >
 	<T.BoxGeometry />
-	<T.MeshBasicMaterial visible={false} />
+	{#await blendImage then blendImage}
+		<SplatMaterial
+			images={{
+				image1: 'brick.png',
+				image2: 'rock.png',
+				image3: 'grass.png'
+			}}
+			repeat={15}
+			{blendImage}
+		/>
+	{/await}
 </T.Mesh>
 
 <T.Mesh
