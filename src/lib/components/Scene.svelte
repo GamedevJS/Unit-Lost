@@ -18,16 +18,16 @@
 
 	const blendImage = useTexture('groundSplat.png');
 
-	const { camera, scene, size, renderer } = useThrelte();
+	const { camera, scene, size } = useThrelte();
 	let selectBox = new SelectionBox($camera, scene);
-
-	console.log(renderer.getContextAttributes());
 
 	let mouseDown = false;
 	let mouseDragged = false;
 	let collection: any[] = [];
 	let moveTarget = new Vector3();
 	let movePointOpacity = 0;
+	let canvasTexture: any;
+	let time = 0;
 
 	let row = -10;
 	let col = -10;
@@ -99,6 +99,7 @@
 
 	useTask((delta) => {
 		movePointOpacity -= delta * 2;
+		time += delta;
 	});
 
 	onDestroy(() => {
@@ -111,7 +112,7 @@
 <Camera />
 
 <!-- <Fog /> -->
-<MiniMap />
+<MiniMap bind:canvasTexture />
 
 <T.DirectionalLight intensity={3} position={[5, 10, 8]} />
 <T.AmbientLight intensity={0.6} />
@@ -178,6 +179,9 @@
 			}}
 			repeat={15}
 			{blendImage}
+			{canvasTexture}
+			noiseOffset={time / 5}
+			opacity={0.2}
 		/>
 	{/await}
 </T.Mesh>

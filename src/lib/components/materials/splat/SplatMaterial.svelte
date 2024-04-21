@@ -11,6 +11,7 @@
 		[0, 1, 0]
 	];
 	export let blendImage: any;
+	export let canvasTexture: any;
 	export let repeat = 1;
 	export let useNoise = false;
 	export let noiseOffset = 0;
@@ -38,6 +39,8 @@
 
 	$: sm.uniforms.blendTexture.value = blendImage;
 
+	$: sm.uniforms.canvasTexture.value = canvasTexture;
+
 	/* 	const imageChanged = (bi: any) => {
 		console.log('changed');
 		sm.uniforms.blendTexture.value = bi;
@@ -62,6 +65,7 @@
 			},
 			textures: { value: [0, 0, 0] },
 			blendTexture: { value: blendImage },
+			canvasTexture: { value: blendImage },
 			noiseOffset: { value: noiseOffset },
 			useNoise: { value: useNoise ? 1 : 0 },
 			repeat: { value: repeat },

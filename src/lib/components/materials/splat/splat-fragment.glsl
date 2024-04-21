@@ -1,9 +1,9 @@
 varying vec2 vUv;
 uniform sampler2D textures[4];
 uniform sampler2D blendTexture;
+uniform sampler2D canvasTexture;
 uniform float colors[9];
 uniform float noiseOffset;
-uniform float useNoise;
 uniform float useColors;
 uniform float repeat;
 uniform float opacity;
@@ -71,10 +71,11 @@ float clampNoise(float noiseTex, float clampAmount, float blurAmount) {
 void main() {
 
     float scale = 0.0;
-    float noiseScale = 50.0;
+    float noiseScale = 100.0;
 
     float blurAmount = 0.01;
     vec4 blendMap = texture2D(blendTexture, vUv);
+    vec4 canvasTexture = texture2D(canvasTexture, vUv);
 
     vec2 uv = vUv;
     uv = uv * repeat;
@@ -106,21 +107,12 @@ void main() {
     float f = snoise(vec3(noiseScale * vUv, noiseOffset));
     f = 1.5 + 0.3 * f;
 
-    if(useNoise == 1.0) {
-        float clampAmount = 0.49;
-        blendMap.r = clampNoise(f * blendMap.r, clampAmount, blurAmount);
-        blendMap.g = clampNoise(f * blendMap.g, clampAmount, blurAmount);
-        blendMap.b = clampNoise(f * blendMap.b, clampAmount, blurAmount);
+    float clampAmount = 0.49;
+    canvasTexture.r = clampNoise(f * canvasTexture.r, clampAmount, blurAmount);
 
-        vec4 tex = (smoothstep(0.00, 1.00, blendMap.r)) * texture1;
-        vec4 tex2 = (smoothstep(0.00, 1.00, blendMap.g)) * texture2;
-        vec4 tex3 = (smoothstep(0.00, 1.00, blendMap.b)) * texture3;
+    float clampedRed = clamp(canvasTexture.r + opacity, 0.0, 1.0);
 
-        finalOutput = mix(tex, tex2, tex2.a);
-        finalOutput = mix(finalOutput, tex3, tex3.a);
-    }
-
-    gl_FragColor = vec4(finalOutput.r, finalOutput.g, finalOutput.b, finalOutput.a * opacity);
+    gl_FragColor = vec4(finalOutput.r, finalOutput.g, finalOutput.b, finalOutput.a * clampedRed);
 
     #include <tonemapping_fragment>
     #include <colorspace_fragment> 

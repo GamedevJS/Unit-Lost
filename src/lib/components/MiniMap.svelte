@@ -7,6 +7,7 @@
 	import { interval } from '$lib/animation';
 	import SplatMaterial from './materials/splat/SplatMaterial.svelte';
 
+	export let canvasTexture: any;
 	let miniMapCanvas: HTMLCanvasElement;
 	let miniMapCanvasContext: CanvasRenderingContext2D | null;
 	let cameraCanvas: HTMLCanvasElement;
@@ -14,19 +15,18 @@
 	let unitsCanvas: HTMLCanvasElement;
 	let unitsCanvasContext: CanvasRenderingContext2D | null;
 	let miniMapContainer: HTMLElement | null;
-	let canvasTexture: any;
+
 	let fogCanvas: HTMLCanvasElement;
 	let fogCanvasContext: CanvasRenderingContext2D | null;
 	let brush: HTMLImageElement;
-	let brushSize = 50;
-	let time = 0;
+	let brushSize = 25;
 
 	const updateUnitsCanvas = (u: any[]) => {
 		if (!unitsCanvas) return;
 		if (!unitsCanvasContext) return;
 		unitsCanvasContext.clearRect(0, 0, 200, 200);
 		if (!fogCanvasContext) return;
-		fogCanvasContext.fillStyle = '#ff0000';
+		fogCanvasContext.fillStyle = '#000000';
 		fogCanvasContext.fillRect(0, 0, 128, 128);
 		u.forEach((unit, i) => {
 			if (!unitsCanvasContext) return;
@@ -40,8 +40,8 @@
 			if (!fogCanvasContext || unit.factionId !== 0) return;
 			fogCanvasContext.drawImage(
 				brush,
-				((unit.currentPosition.x + 25) / 50) * 128 - brushSize / 2,
-				((unit.currentPosition.z + 25) / 50) * 128 - brushSize / 2,
+				((unit.currentPosition.x + 35) / 70) * 128 - brushSize / 2,
+				((unit.currentPosition.z + 35) / 70) * 128 - brushSize / 2,
 				brushSize,
 				brushSize
 			);
@@ -94,12 +94,14 @@
 		});
 
 		if (!miniMapCanvasContext) return;
-		miniMapCanvasContext.fillStyle = '#000000';
+		miniMapCanvasContext.fillStyle = 'darkBlue';
 		miniMapCanvasContext.fillRect(0, 0, 200, 200);
-		miniMapCanvasContext?.drawImage(unitsCanvas, 0, 0);
-		miniMapCanvasContext?.drawImage(cameraCanvas, 0, 0);
-
-		time += delta / 10;
+		miniMapCanvasContext.drawImage(unitsCanvas, 0, 0);
+		miniMapCanvasContext.globalCompositeOperation = 'multiply';
+		//miniMapCanvasContext.drawImage(fogCanvas, -40, -40, 280, 280);
+		miniMapCanvasContext.drawImage(fogCanvas, 17, 17, 94, 94, 0, 0, 200, 200);
+		miniMapCanvasContext.globalCompositeOperation = 'source-over';
+		miniMapCanvasContext.drawImage(cameraCanvas, 0, 0);
 	});
 
 	onMount(() => {
@@ -131,37 +133,15 @@
 		fogCanvas.width = 128;
 		fogCanvasContext = fogCanvas.getContext('2d');
 		if (!fogCanvasContext) return;
-		fogCanvasContext.fillStyle = '#FF0000';
+		fogCanvasContext.fillStyle = '#000000';
 		fogCanvasContext.fillRect(0, 0, 200, 200);
-		loadBrushImage('blackCircle.png').then((img) => {
+		loadBrushImage('whiteCircle.png').then((img) => {
 			brush = img;
-			//updateFogCanvas($units);
 		});
 		canvasTexture = new CanvasTexture(fogCanvas);
-
-		//window.requestAnimationFrame(step);
 	});
 
 	onDestroy(() => {
 		miniMapContainer?.removeChild(miniMapCanvas);
 	});
 </script>
-
-<T.Mesh name="fog" rotation.x={-1.57} scale={[50, 50]} position={[2, 3, 2]}>
-	<T.PlaneGeometry />
-
-	<SplatMaterial
-		colors={[
-			[0, 0, 0],
-			[0, 0, 0],
-			[0, 0, 0]
-		]}
-		repeat={15}
-		blendImage={canvasTexture}
-		useNoise
-		noiseOffset={time}
-		opacity={0.6}
-	/>
-
-	<!-- <T.MeshBasicMaterial /> -->
-</T.Mesh>
