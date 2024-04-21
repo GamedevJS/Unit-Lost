@@ -2,6 +2,7 @@ import type { Vector3 } from 'three';
 
 export type Unit = {
 	id: string;
+	typeId: number;
 	factionId: number;
 	targetId: string;
 	selected: boolean;
@@ -15,5 +16,7 @@ export type Unit = {
 	distance: number;
 	isBuilding: boolean;
 };
+
+export type SelectedUnits = { units: Unit[]; mouseBtn: number };
 
 export type Point = { x: number; z: number };

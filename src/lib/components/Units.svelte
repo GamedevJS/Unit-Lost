@@ -4,7 +4,7 @@
 	import { selectedUnits, units } from '$lib/stores';
 	import { Vector3, InstancedMesh as InstancedMeshType } from 'three';
 	import { generateGrid } from '$lib/utils';
-	import type { Unit } from '$lib/types';
+	import type { Unit, SelectedUnits } from '$lib/types';
 
 	export let moveTarget: Vector3;
 
@@ -28,36 +28,29 @@
 		}
 	};
 
-	const selectUnit = (su: { units: string | string[]; mouseBtn: number }) => {
+	const selectUnit = (su: SelectedUnits) => {
 		if (su === undefined) return;
-		if (typeof su.units === 'string') {
-			if (su.mouseBtn === 0) {
-				$units.forEach((unit) => {
-					unit.selected = unit.id === su.units ? true : false;
-				});
-			} else {
-				let targetedEnemyId = '';
-				$units.forEach((unit, index) => {
-					if (unit.selected) {
-						if (typeof su.units !== 'string') return;
-						unit = setStateMoving(unit, su.units);
-						targetedEnemyId = su.units;
-					}
-				});
-				if (targetedEnemyId) {
-					const targetedEnemy = $units.find((unit) => unit.id === targetedEnemyId);
-					if (!targetedEnemy) return;
-					attackPoint = targetedEnemy.currentPosition;
-					attackPointOpacity = 1;
-					$units = $units;
-				}
-			}
-		} else {
+		if (su.mouseBtn === 0) {
 			$units.forEach((unit, index, array) => {
 				unit.selected = false;
-
-				if (unit.factionId === 0 && su.units.includes(unit.id)) unit.selected = true;
+				if (!Array.isArray(su.units)) return;
+				if (unit.factionId === 0 && su.units.find((u) => u.id === unit.id)) unit.selected = true;
 			});
+		} else {
+			let targetedEnemyId = '';
+			$units.forEach((unit, index) => {
+				if (unit.selected) {
+					unit = setStateMoving(unit, su.units[0].id);
+					targetedEnemyId = su.units[0].id;
+				}
+			});
+			if (targetedEnemyId) {
+				const targetedEnemy = $units.find((unit) => unit.id === targetedEnemyId);
+				if (!targetedEnemy) return;
+				attackPoint = targetedEnemy.currentPosition;
+				attackPointOpacity = 1;
+				$units = $units;
+			}
 		}
 		$units = $units;
 	};
@@ -128,7 +121,7 @@
 		unit.state = 'moving';
 		unit.color = 'blue';
 		if (moveTo) unit.moveTo = moveTo;
-		if (targetId) unit.targetId = targetId;
+		unit.targetId = targetId;
 		return unit;
 	};
 

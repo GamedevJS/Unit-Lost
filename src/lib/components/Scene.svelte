@@ -44,6 +44,7 @@
 		}
 		$units.push({
 			id: generateId(),
+			typeId: 1,
 			factionId: 0,
 			targetId: '',
 			selected: false,
@@ -67,6 +68,7 @@
 		}
 		$units.push({
 			id: generateId(),
+			typeId: 1,
 			targetId: '',
 			factionId: 1,
 			selected: false,
@@ -84,6 +86,7 @@
 
 	$units.push({
 		id: generateId(),
+		typeId: 101,
 		targetId: '',
 		factionId: 0,
 		selected: false,
@@ -102,10 +105,11 @@
 	let distance = 0;
 	const selectSingle = (groundLastPosition: Vector3, mouseBtn: number) => {
 		const closeUnits: Unit[] = [];
-		selectPoint.copy(groundLastPosition.add(cursorOffset));
+		selectPoint.copy(groundLastPosition);
+		selectPoint.add(cursorOffset);
 		selectPoint = selectPoint;
 		$units.forEach((unit) => {
-			displacement.subVectors(selectPoint, unit.currentPosition);
+			displacement.subVectors(groundLastPosition, unit.currentPosition);
 			distance = displacement.length();
 			if (
 				distance < 1 &&
@@ -117,12 +121,12 @@
 		});
 
 		if (closeUnits.length === 1) {
-			$selectedUnits = { units: closeUnits[0].id, mouseBtn: mouseBtn };
+			$selectedUnits = { units: [closeUnits[0]], mouseBtn: mouseBtn };
 			return true;
 		} else if (closeUnits.length > 1) {
 			const cu = findClosestUnit(groundLastPosition, closeUnits);
 			if (!cu) return false;
-			$selectedUnits = { units: cu.id, mouseBtn: mouseBtn };
+			$selectedUnits = { units: [cu], mouseBtn: mouseBtn };
 			return true;
 		}
 		return false;
@@ -150,7 +154,7 @@
 			z: raycaster.intersectObject(ground)[0].point.z
 		});
 
-		let sUnits: string[] = [];
+		let sUnits: Unit[] = [];
 		$units.forEach((unit) => {
 			if (
 				isPointInside(
@@ -158,7 +162,7 @@
 					groundSelectionPoints
 				)
 			) {
-				sUnits.push(unit.id);
+				sUnits.push(unit);
 			}
 		});
 		$selectedUnits = { units: sUnits, mouseBtn: 0 };
@@ -235,16 +239,12 @@
 			}
 			moveTarget.set(e.point.x, 0, e.point.z);
 			moveTarget = moveTarget;
-			if (
-				(typeof $selectedUnits.units === 'number' && $selectedUnits.units > -1) ||
-				(Array.isArray($selectedUnits.units) && $selectedUnits.units.length > 0)
-			)
-				movePointOpacity = 1;
+			if ($selectedUnits.units.length > 0) movePointOpacity = 1;
 		} else if (e.nativeEvent.button === 0) {
 			// left mouse btn
 			$dragBox.mouseDown = false;
 			mouseDown = false;
-			$selectedUnits.units = '';
+			$selectedUnits.units = [];
 			if (mouseDragged) {
 				selectArea(e.pointer, e.point);
 			} else {

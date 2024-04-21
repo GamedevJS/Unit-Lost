@@ -5,6 +5,7 @@
 	import { Vector3 } from 'three';
 	import Scene from './Scene.svelte';
 	import DragBox from './ui/DragBox.svelte';
+	import StatusBoxes from './ui/StatusBoxes.svelte';
 	import { onMount } from 'svelte';
 
 	onMount(() => {
@@ -13,6 +14,7 @@
 			let id = generateId();
 			$units.push({
 				id: id,
+				typeId: 1,
 				factionId: factionId,
 				targetId: '',
 				selected: false,
@@ -33,6 +35,7 @@
 		window.addBuilding = () => {
 			$units.push({
 				id: generateId(),
+				typeId: 1,
 				factionId: 0,
 				targetId: '',
 				selected: false,
@@ -56,6 +59,8 @@
 
 <!-- <MiniMap /> -->
 <div id="miniMapContainer" style:position="absolute" style:bottom="20px" style:right="20px"></div>
+
+<StatusBoxes />
 
 <Canvas>
 	<Scene />

@@ -109,8 +109,10 @@
 		miniMapCanvasContext.fillStyle = '#333333';
 		miniMapCanvasContext.fillRect(0, 0, 200, 200);
 		miniMapCanvasContext.globalCompositeOperation = 'multiply';
+		miniMapCanvasContext.globalAlpha = 0.9;
 		miniMapCanvasContext.drawImage(fogCanvas, 17, 17, 94, 94, 0, 0, 200, 200);
 		miniMapCanvasContext.globalCompositeOperation = 'source-over';
+		miniMapCanvasContext.globalAlpha = 1;
 		miniMapCanvasContext.drawImage(unitsCanvas, 0, 0);
 		miniMapCanvasContext.drawImage(cameraCanvas, 0, 0);
 	});
