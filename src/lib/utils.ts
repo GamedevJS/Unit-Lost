@@ -1,3 +1,5 @@
+import type { Point } from './types';
+
 export const generateId = () => {
 	return Math.random().toString(16).slice(2);
 };
@@ -34,3 +36,22 @@ export const rotatePoint = (x: number, y: number, cx = 0, cy = 0, angle = 45) =>
 		ny = cos * (y - cy) - sin * (x - cx) + cy;
 	return { x: nx, y: ny };
 };
+
+/**
+ * Returns true if 2D point is insde an array of 2D points.
+ * The order of the points matter!
+ */
+export function isPointInside(point: Point, points: Point[]): boolean {
+	const x = point.x;
+	const y = point.z;
+	let inside = false;
+	for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+		const xi = points[i].x;
+		const yi = points[i].z;
+		const xj = points[j].x;
+		const yj = points[j].z;
+		const intersect = yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+		if (intersect) inside = !inside;
+	}
+	return inside;
+}

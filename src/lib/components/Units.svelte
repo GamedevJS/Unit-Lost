@@ -30,15 +30,23 @@
 
 	const selectUnit = (su: string | string[]) => {
 		if (su === undefined) return;
+
 		if (typeof su === 'string') {
+			console.log('-- single --');
 			$units.forEach((unit) => {
+				//	console.log(unit.id);
 				unit.selected = unit.id === su ? true : false;
+				//	console.log(unit.factionId);
 			});
 		} else {
-			$units.forEach((unit) => {
+			console.log('-- all --');
+			$units.forEach((unit, index, array) => {
 				unit.selected = false;
+				//	console.log(unit.id);
 				if (unit.factionId === 0 && su.includes(unit.id)) unit.selected = true;
+				//console.log(unit.factionId);
 			});
+			//console.log('selected', su);
 		}
 		$units = $units;
 	};
@@ -123,9 +131,20 @@
 		savedFoundEnemies = allFoundEnemies;
 		allFoundEnemies = [];
 		$units.forEach((unit, index, object) => {
+			unit.visible = false;
+			if (savedFoundEnemies.find((u) => u.id === unit.id)) {
+				unit.visible = true;
+			}
 			// is enemy nearby?
 			foundEnemies = findCloseEnemies(unit);
 			enemyInFiringRange = foundEnemies.find((u) => u.distance < 3);
+
+			if (unit.health < 0) {
+				arrayUpdated = true;
+				object.splice(index, 1);
+			}
+
+			if (unit.isBuilding) return;
 
 			if (unit.state === 'moving') {
 				arrayUpdated = true;
@@ -184,10 +203,7 @@
 					}
 				}
 			}
-			if (unit.health < 0) {
-				arrayUpdated = true;
-				object.splice(index, 1);
-			}
+
 			unit.visible = false;
 			if (savedFoundEnemies.find((u) => u.id === unit.id)) {
 				unit.visible = true;
@@ -203,8 +219,9 @@
 </script>
 
 <InstancedMesh name="units" bind:ref={unitsMesh}>
-	{#each $units as unit, i (unit.id)}
-		{#if unit.factionId === 0 || unit.visible}
+	{#each $units as unit (unit.id)}
+		{#if (unit.factionId === 0 || unit.visible) && !unit.isBuilding}
+			<!-- TODO: move these click events to parent -->
 			<Instance
 				on:pointerup={(e) => {
 					e.stopPropagation();
@@ -263,6 +280,16 @@
 		{/if}
 	{/each}
 	<T.PlaneGeometry args={[0.06, 0.4]} />
+	<T.MeshStandardMaterial />
+</InstancedMesh>
+
+<InstancedMesh name="buildings" frustumCulled={false}>
+	{#each $units as unit, i (unit.id)}
+		{#if (unit.factionId === 0 || unit.visible) && unit.isBuilding}
+			<Instance position={[unit.currentPosition.x, 0.5, unit.currentPosition.z]} color={'white'} />
+		{/if}
+	{/each}
+	<T.BoxGeometry />
 	<T.MeshStandardMaterial />
 </InstancedMesh>
 

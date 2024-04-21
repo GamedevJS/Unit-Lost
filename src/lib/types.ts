@@ -13,4 +13,7 @@ export type Unit = {
 	health: number;
 	visible: boolean;
 	distance: number;
+	isBuilding: boolean;
 };
+
+export type Point = { x: number; z: number };

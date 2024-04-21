@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { T, useTask, useThrelte } from '@threlte/core';
 	import { Grid, interactivity, useTexture } from '@threlte/extras';
-	import { BoxGeometry, Mesh, MeshStandardMaterial, Vector3 } from 'three';
+	import { Mesh, Vector3, Raycaster, Vector2 } from 'three';
 	import { dragBox, cursorPosition, units, selectedUnit, game } from '$lib/stores';
-	import { generateId } from '$lib/utils';
-	import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
+	import { generateId, isPointInside } from '$lib/utils';
+	import type { Point } from '$lib/types';
 
 	import { onDestroy } from 'svelte';
 
@@ -12,27 +12,28 @@
 	import Units from './Units.svelte';
 	import Camera from './Camera.svelte';
 	import SplatMaterial from '$lib/components/materials/splat/SplatMaterial.svelte';
-	import Fog from './Fog.svelte';
 	import MiniMap from './MiniMap.svelte';
 
 	interactivity();
 
 	const blendImage = useTexture('groundSplat.png');
 
-	const { camera, scene, size } = useThrelte();
-	let selectBox = new SelectionBox($camera, scene);
+	const { camera } = useThrelte();
 
 	let mouseDown = false;
 	let mouseDragged = false;
-	let collection: any[] = [];
+	let mouseDownPosition = new Vector2();
 	let moveTarget = new Vector3();
 	let movePointOpacity = 0;
 	let canvasTexture: any;
 	let time = 0;
+	let ground: Mesh;
+	const raycaster = new Raycaster();
+	let groundSelectionPoints: Point[] = [];
 
 	let row = -10;
 	let col = -10;
-	let unitCount = 50;
+	let unitCount = 100;
 	for (let i = 0; i < unitCount; i++) {
 		row++;
 		if (row > 10) {
@@ -51,7 +52,8 @@
 			hold: false,
 			health: 1,
 			visible: false,
-			distance: 0
+			distance: 0,
+			isBuilding: false
 		});
 	}
 	col = 5;
@@ -73,33 +75,61 @@
 			hold: false,
 			health: 1,
 			visible: false,
-			distance: 0
+			distance: 0,
+			isBuilding: false
 		});
 	}
 
-	const selectArea = () => {
-		selectBox.camera = $camera;
-		selectBox.startPoint.set(
-			($dragBox.x / $size.width) * 2 - 1,
-			-($dragBox.y / $size.height) * 2 + 1,
-			0.5
-		);
-		selectBox.endPoint.set(
-			($cursorPosition.x / $size.width) * 2 - 1,
-			-($cursorPosition.y / $size.height) * 2 + 1,
-			0.5
-		);
-		collection = selectBox.select();
-		// @ts-ignore
-		let selectedInstances = Object.values(selectBox.instances)[0] as number[];
+	$units.push({
+		id: generateId(),
+		targetId: '',
+		factionId: 0,
+		selected: false,
+		moveTo: new Vector3(),
+		currentPosition: new Vector3(0.5, 0, 0.5),
+		state: 'idle',
+		color: 'white',
+		hold: false,
+		health: 1,
+		visible: false,
+		distance: 0,
+		isBuilding: true
+	});
+
+	const selectArea = (mouseUpPosition: Vector2, groundLastPosition: Vector3) => {
+		groundSelectionPoints.length = 0;
+		raycaster.setFromCamera(new Vector2(mouseDownPosition.x, mouseDownPosition.y), $camera);
+		groundSelectionPoints.push({
+			x: raycaster.intersectObject(ground)[0].point.x,
+			z: raycaster.intersectObject(ground)[0].point.z
+		});
+		raycaster.setFromCamera(new Vector2(mouseDownPosition.x, mouseUpPosition.y), $camera);
+		groundSelectionPoints.push({
+			x: raycaster.intersectObject(ground)[0].point.x,
+			z: raycaster.intersectObject(ground)[0].point.z
+		});
+		groundSelectionPoints.push({
+			x: groundLastPosition.x,
+			z: groundLastPosition.z
+		});
+		raycaster.setFromCamera(new Vector2(mouseUpPosition.x, mouseDownPosition.y), $camera);
+		groundSelectionPoints.push({
+			x: raycaster.intersectObject(ground)[0].point.x,
+			z: raycaster.intersectObject(ground)[0].point.z
+		});
+
 		let selectedUnits: string[] = [];
-		selectedInstances.forEach((index) => {
-			selectedUnits.push($units[index].id);
+		$units.forEach((unit) => {
+			if (
+				isPointInside(
+					{ x: unit.currentPosition.x, z: unit.currentPosition.z },
+					groundSelectionPoints
+				)
+			) {
+				selectedUnits.push(unit.id);
+			}
 		});
 		$selectedUnit = selectedUnits;
-		/* selectedInstances.forEach((id) => {
-			//	selectUnit(id, true);
-		}); */
 	};
 
 	useTask((delta) => {
@@ -122,13 +152,20 @@
 <T.DirectionalLight intensity={3} position={[5, 10, 8]} />
 <T.AmbientLight intensity={0.6} />
 
+<!-- {#each groundSelectionPoints as gsp}
+	<T.Mesh scale={0.3} position.x={gsp.x} position.z={gsp.z}>
+		<T.BoxGeometry />
+		<T.MeshStandardMaterial color="red" />
+	</T.Mesh>
+{/each} -->
+
 <Grid
 	gridSize={[50, 50]}
 	cellColor={'#46536b'}
 	sectionColor="#ffffff"
 	sectionThickness={0}
 	fadeDistance={50}
-	position.y={-0.01}
+	position.y={0}
 />
 
 <Units {moveTarget} />
@@ -137,10 +174,12 @@
 	name="ground"
 	scale={[70, 0.1, 70]}
 	position={-0.1}
+	bind:ref={ground}
 	on:pointerdown={(e) => {
 		if (e.nativeEvent.button === 0) {
 			// left mouse btn
 			$dragBox.mouseDown = true;
+			mouseDownPosition.set(e.pointer.x, e.pointer.y);
 			mouseDown = true;
 			mouseDragged = false;
 			$dragBox.x = e.nativeEvent.clientX;
@@ -170,7 +209,7 @@
 			$dragBox.mouseDown = false;
 			mouseDown = false;
 			$selectedUnit = '';
-			if (mouseDragged) selectArea();
+			if (mouseDragged) selectArea(e.pointer, e.point);
 		}
 	}}
 >

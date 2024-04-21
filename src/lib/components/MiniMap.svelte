@@ -6,6 +6,7 @@
 	import { CanvasTexture } from 'three';
 	import { interval } from '$lib/animation';
 	import SplatMaterial from './materials/splat/SplatMaterial.svelte';
+	import type { Unit } from '$lib/types';
 
 	export let canvasTexture: any;
 	let miniMapCanvas: HTMLCanvasElement;
@@ -21,7 +22,7 @@
 	let brush: HTMLImageElement;
 	let brushSize = 25;
 
-	const updateUnitsCanvas = (u: any[]) => {
+	const updateUnitsCanvas = (u: Unit[]) => {
 		if (!unitsCanvas) return;
 		if (!unitsCanvasContext) return;
 		unitsCanvasContext.clearRect(0, 0, 200, 200);
@@ -30,13 +31,24 @@
 		fogCanvasContext.fillRect(0, 0, 128, 128);
 		u.forEach((unit, i) => {
 			if (!unitsCanvasContext) return;
-			unitsCanvasContext.fillStyle = '#F85122';
-			unitsCanvasContext.fillRect(
-				((unit.currentPosition.x + 25) / 50) * 200,
-				((unit.currentPosition.z + 25) / 50) * 200,
-				3,
-				3
-			);
+			if (unit.factionId === 0) {
+				unitsCanvasContext.fillStyle = '#F85122';
+				unitsCanvasContext.fillRect(
+					((unit.currentPosition.x + 25) / 50) * 200,
+					((unit.currentPosition.z + 25) / 50) * 200,
+					3,
+					3
+				);
+			} else if (unit.visible) {
+				unitsCanvasContext.fillStyle = 'lightBlue';
+				unitsCanvasContext.fillRect(
+					((unit.currentPosition.x + 25) / 50) * 200,
+					((unit.currentPosition.z + 25) / 50) * 200,
+					3,
+					3
+				);
+			}
+
 			if (!fogCanvasContext || unit.factionId !== 0) return;
 			fogCanvasContext.drawImage(
 				brush,
@@ -94,13 +106,12 @@
 		});
 
 		if (!miniMapCanvasContext) return;
-		miniMapCanvasContext.fillStyle = 'darkBlue';
+		miniMapCanvasContext.fillStyle = '#333333';
 		miniMapCanvasContext.fillRect(0, 0, 200, 200);
-		miniMapCanvasContext.drawImage(unitsCanvas, 0, 0);
 		miniMapCanvasContext.globalCompositeOperation = 'multiply';
-		//miniMapCanvasContext.drawImage(fogCanvas, -40, -40, 280, 280);
 		miniMapCanvasContext.drawImage(fogCanvas, 17, 17, 94, 94, 0, 0, 200, 200);
 		miniMapCanvasContext.globalCompositeOperation = 'source-over';
+		miniMapCanvasContext.drawImage(unitsCanvas, 0, 0);
 		miniMapCanvasContext.drawImage(cameraCanvas, 0, 0);
 	});
 

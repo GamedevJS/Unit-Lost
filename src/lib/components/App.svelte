@@ -9,7 +9,28 @@
 
 	onMount(() => {
 		// @ts-ignore
-		window.addUnit = () => {
+		window.addUnit = (factionId = 0) => {
+			let id = generateId();
+			$units.push({
+				id: id,
+				factionId: factionId,
+				targetId: '',
+				selected: false,
+				moveTo: new Vector3($cameraGroundPosition.x, 0.25, $cameraGroundPosition.z),
+				currentPosition: new Vector3($cameraGroundPosition.x, 0.25, $cameraGroundPosition.z),
+				state: 'idle',
+				color: 'white',
+				hold: false,
+				health: 1,
+				distance: 0,
+				visible: false,
+				isBuilding: false
+			});
+			$units = $units;
+			console.log('unit added: ', id, ' at: ', $cameraGroundPosition.x, $cameraGroundPosition.z);
+		};
+		// @ts-ignore
+		window.addBuilding = () => {
 			$units.push({
 				id: generateId(),
 				factionId: 0,
@@ -22,10 +43,11 @@
 				hold: false,
 				health: 1,
 				distance: 0,
-				visible: false
+				visible: false,
+				isBuilding: true
 			});
 			$units = $units;
-			console.log('unit added at: ', $cameraGroundPosition.x, $cameraGroundPosition.z);
+			console.log('building added at: ', $cameraGroundPosition.x, $cameraGroundPosition.z);
 		};
 	});
 </script>
