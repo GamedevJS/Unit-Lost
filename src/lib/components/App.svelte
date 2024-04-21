@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Canvas } from '@threlte/core';
 	import { game, units, cameraGroundPosition } from '$lib/stores';
+	import { generateId } from '$lib/utils';
 	import { Vector3 } from 'three';
 	import Scene from './Scene.svelte';
 	import DragBox from './ui/DragBox.svelte';
@@ -10,7 +11,7 @@
 		// @ts-ignore
 		window.addUnit = () => {
 			$units.push({
-				id: crypto.randomUUID(),
+				id: generateId(),
 				factionId: 0,
 				targetId: '',
 				selected: false,
@@ -19,7 +20,9 @@
 				state: 'idle',
 				color: 'white',
 				hold: false,
-				health: 1
+				health: 1,
+				distance: 0,
+				visible: false
 			});
 			$units = $units;
 			console.log('unit added at: ', $cameraGroundPosition.x, $cameraGroundPosition.z);

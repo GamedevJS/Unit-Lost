@@ -113,6 +113,7 @@
 		cameraCanvas.height = 200;
 		cameraCanvas.width = 200;
 		cameraCanvasContext = cameraCanvas.getContext('2d');
+		cameraUpdated({ x: 0, z: 0 });
 		miniMapCanvas = document.createElement('canvas');
 		miniMapCanvas.height = 300;
 		miniMapCanvas.width = 300;

@@ -3,6 +3,7 @@
 	import { Grid, interactivity, useTexture } from '@threlte/extras';
 	import { BoxGeometry, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 	import { dragBox, cursorPosition, units, selectedUnit, game } from '$lib/stores';
+	import { generateId } from '$lib/utils';
 	import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
 
 	import { onDestroy } from 'svelte';
@@ -39,7 +40,7 @@
 			col++;
 		}
 		$units.push({
-			id: Math.ceil(Math.random() * 100000).toString(),
+			id: generateId(),
 			factionId: 0,
 			targetId: '',
 			selected: false,
@@ -48,7 +49,9 @@
 			state: 'idle',
 			color: 'white',
 			hold: false,
-			health: 1
+			health: 1,
+			visible: false,
+			distance: 0
 		});
 	}
 	col = 5;
@@ -59,7 +62,7 @@
 			col++;
 		}
 		$units.push({
-			id: Math.ceil(Math.random() * 100000).toString(),
+			id: generateId(),
 			targetId: '',
 			factionId: 1,
 			selected: false,
@@ -68,7 +71,9 @@
 			state: 'idle',
 			color: 'white',
 			hold: false,
-			health: 1
+			health: 1,
+			visible: false,
+			distance: 0
 		});
 	}
 

@@ -1,3 +1,7 @@
+export const generateId = () => {
+	return Math.random().toString(16).slice(2);
+};
+
 export const generateGrid = (unitCount = 5, center = { x: -2, y: 4 }) => {
 	const sq = Math.ceil(Math.sqrt(unitCount));
 	const cellSpacing = 0.5;

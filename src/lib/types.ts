@@ -11,4 +11,6 @@ export type Unit = {
 	color: string;
 	hold: boolean;
 	health: number;
+	visible: boolean;
+	distance: number;
 };
