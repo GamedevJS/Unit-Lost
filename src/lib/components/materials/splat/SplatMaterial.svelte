@@ -14,6 +14,7 @@
 	export let repeat = 1;
 	export let useNoise = false;
 	export let noiseOffset = 0;
+	export let opacity = 1;
 
 	let useColors = Object.keys(images).length === 0 ? 1 : 0;
 
@@ -64,7 +65,8 @@
 			noiseOffset: { value: noiseOffset },
 			useNoise: { value: useNoise ? 1 : 0 },
 			repeat: { value: repeat },
-			useColors: { value: useColors }
+			useColors: { value: useColors },
+			opacity: { value: opacity }
 		},
 		fragmentShader,
 		vertexShader

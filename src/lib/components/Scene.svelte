@@ -1,14 +1,6 @@
 <script lang="ts">
 	import { T, useTask, useThrelte } from '@threlte/core';
-	import {
-		Grid,
-		interactivity,
-		OrbitControls,
-		Outlines,
-		InstancedMesh,
-		Instance,
-		useTexture
-	} from '@threlte/extras';
+	import { Grid, interactivity, useTexture } from '@threlte/extras';
 	import { BoxGeometry, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 	import { dragBox, cursorPosition, units, selectedUnit, game } from '$lib/stores';
 	import { SelectionBox } from 'three/examples/jsm/interactive/SelectionBox.js';
@@ -20,6 +12,7 @@
 	import Camera from './Camera.svelte';
 	import SplatMaterial from '$lib/components/materials/splat/SplatMaterial.svelte';
 	import Fog from './Fog.svelte';
+	import MiniMap from './MiniMap.svelte';
 
 	interactivity();
 
@@ -117,7 +110,8 @@
 
 <Camera />
 
-<Fog />
+<!-- <Fog /> -->
+<MiniMap />
 
 <T.DirectionalLight intensity={3} position={[5, 10, 8]} />
 <T.AmbientLight intensity={0.6} />

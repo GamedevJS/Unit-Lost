@@ -6,6 +6,7 @@ uniform float noiseOffset;
 uniform float useNoise;
 uniform float useColors;
 uniform float repeat;
+uniform float opacity;
 
 vec4 permute(vec4 x) {
     return mod(((x * 34.0) + 1.0) * x, 289.0);
@@ -119,7 +120,7 @@ void main() {
         finalOutput = mix(finalOutput, tex3, tex3.a);
     }
 
-    gl_FragColor = finalOutput;
+    gl_FragColor = vec4(finalOutput.r, finalOutput.g, finalOutput.b, finalOutput.a * opacity);
 
     #include <tonemapping_fragment>
     #include <colorspace_fragment> 

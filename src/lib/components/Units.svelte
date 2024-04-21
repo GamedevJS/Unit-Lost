@@ -54,7 +54,6 @@
 		$units.forEach((unit, i) => {
 			if (unit.selected && unit.factionId === 0) {
 				if (unitCount > 1) {
-					console.log(gridPositions[gridCount]);
 					destination.set(gridPositions[gridCount].x, destination.y, gridPositions[gridCount].y);
 				}
 				unit = setStateMoving(unit, '', unit.moveTo.copy(destination));
@@ -108,8 +107,6 @@
 		if (targetId) unit.targetId = targetId;
 		return unit;
 	};
-
-	// todo - try a counter system where we update a faction every 15 frames
 
 	let closeEnemy: Unit | undefined;
 	let target: Unit | undefined;
@@ -210,7 +207,6 @@
 					});
 					$units = $units;
 					if (unitWillAttack) {
-						console.log(e.object.position.x);
 						attackPoint = e.object.position;
 						attackPointOpacity = 1;
 					}

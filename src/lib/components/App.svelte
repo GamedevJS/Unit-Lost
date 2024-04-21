@@ -3,7 +3,6 @@
 	import { game, units, cameraGroundPosition } from '$lib/stores';
 	import { Vector3 } from 'three';
 	import Scene from './Scene.svelte';
-	import MiniMap from './ui/MiniMap.svelte';
 	import DragBox from './ui/DragBox.svelte';
 	import { onMount } from 'svelte';
 
@@ -30,7 +29,8 @@
 
 <DragBox />
 
-<MiniMap />
+<!-- <MiniMap /> -->
+<div id="miniMapContainer" style:position="absolute" style:bottom="20px" style:right="20px"></div>
 
 <Canvas>
 	<Scene />
