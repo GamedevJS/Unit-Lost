@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { T, useTask } from '@threlte/core';
 	import { InstancedMesh, Instance } from '@threlte/extras';
-	import { selectedUnit, units } from '$lib/stores';
+	import { selectedUnits, units } from '$lib/stores';
 	import { Vector3, InstancedMesh as InstancedMeshType } from 'three';
 	import { generateGrid } from '$lib/utils';
 	import type { Unit } from '$lib/types';
@@ -28,30 +28,41 @@
 		}
 	};
 
-	const selectUnit = (su: string | string[]) => {
+	const selectUnit = (su: { units: string | string[]; mouseBtn: number }) => {
 		if (su === undefined) return;
-
-		if (typeof su === 'string') {
-			console.log('-- single --');
-			$units.forEach((unit) => {
-				//	console.log(unit.id);
-				unit.selected = unit.id === su ? true : false;
-				//	console.log(unit.factionId);
-			});
+		if (typeof su.units === 'string') {
+			if (su.mouseBtn === 0) {
+				$units.forEach((unit) => {
+					unit.selected = unit.id === su.units ? true : false;
+				});
+			} else {
+				let targetedEnemyId = '';
+				$units.forEach((unit, index) => {
+					if (unit.selected) {
+						if (typeof su.units !== 'string') return;
+						unit = setStateMoving(unit, su.units);
+						targetedEnemyId = su.units;
+					}
+				});
+				if (targetedEnemyId) {
+					const targetedEnemy = $units.find((unit) => unit.id === targetedEnemyId);
+					if (!targetedEnemy) return;
+					attackPoint = targetedEnemy.currentPosition;
+					attackPointOpacity = 1;
+					$units = $units;
+				}
+			}
 		} else {
-			console.log('-- all --');
 			$units.forEach((unit, index, array) => {
 				unit.selected = false;
-				//	console.log(unit.id);
-				if (unit.factionId === 0 && su.includes(unit.id)) unit.selected = true;
-				//console.log(unit.factionId);
+
+				if (unit.factionId === 0 && su.units.includes(unit.id)) unit.selected = true;
 			});
-			//console.log('selected', su);
 		}
 		$units = $units;
 	};
 
-	$: selectUnit($selectedUnit);
+	$: selectUnit($selectedUnits);
 
 	const moveUnits = (destination: Vector3) => {
 		if (!destination) return;
@@ -223,29 +234,6 @@
 		{#if (unit.factionId === 0 || unit.visible) && !unit.isBuilding}
 			<!-- TODO: move these click events to parent -->
 			<Instance
-				on:pointerup={(e) => {
-					e.stopPropagation();
-					if (e.nativeEvent.button === 0) {
-						$selectedUnit = unit.id;
-					} else if (e.nativeEvent.button === 2) {
-						if (unit.factionId === 0) return;
-						let unitWillAttack = false;
-						$units.forEach((u, index, object) => {
-							if (u.selected) {
-								object[index] = setStateMoving(object[index], unit.id);
-								unitWillAttack = true;
-							}
-						});
-						$units = $units;
-						if (unitWillAttack) {
-							attackPoint = e.object.position;
-							attackPointOpacity = 1;
-						}
-					}
-				}}
-				on:pointerdown={(e) => {
-					e.stopPropagation();
-				}}
 				position={[unit.currentPosition.x, 0.25, unit.currentPosition.z]}
 				color={unit.color}
 			/>

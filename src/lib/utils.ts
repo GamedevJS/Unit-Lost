@@ -1,4 +1,4 @@
-import type { Point } from './types';
+import type { Point, Unit } from './types';
 
 export const generateId = () => {
 	return Math.random().toString(16).slice(2);
@@ -54,4 +54,25 @@ export function isPointInside(point: Point, points: Point[]): boolean {
 		if (intersect) inside = !inside;
 	}
 	return inside;
+}
+
+/**
+ * Returns the closet 2D position for a given 2D point from an array of 2D positions.
+ */
+export function findClosestUnit(point: Point, units: Unit[]): Unit | undefined {
+	let closestUnit;
+	let minDistance = Infinity;
+	for (let i = 0; i < units.length; i++) {
+		const distance = calculateDistanceBetweenPoints(point, units[i].currentPosition);
+		if (distance < minDistance) {
+			closestUnit = units[i];
+			minDistance = distance;
+		}
+	}
+	return closestUnit;
+}
+export function calculateDistanceBetweenPoints(pointA: Point, pointB: Point): number {
+	const dx = pointA.x - pointB.x;
+	const dz = pointA.z - pointB.z;
+	return Math.sqrt(dx * dx + dz * dz);
 }

@@ -2,9 +2,9 @@
 	import { T, useTask, useThrelte } from '@threlte/core';
 	import { Grid, interactivity, useTexture } from '@threlte/extras';
 	import { Mesh, Vector3, Raycaster, Vector2 } from 'three';
-	import { dragBox, cursorPosition, units, selectedUnit, game } from '$lib/stores';
-	import { generateId, isPointInside } from '$lib/utils';
-	import type { Point } from '$lib/types';
+	import { dragBox, cursorPosition, units, selectedUnits, game } from '$lib/stores';
+	import { generateId, isPointInside, findClosestUnit } from '$lib/utils';
+	import type { Point, Unit } from '$lib/types';
 
 	import { onDestroy } from 'svelte';
 
@@ -28,6 +28,8 @@
 	let canvasTexture: any;
 	let time = 0;
 	let ground: Mesh;
+	const cursorOffset = new Vector3(0.3, 0, 0.3);
+	let selectPoint = new Vector3();
 	const raycaster = new Raycaster();
 	let groundSelectionPoints: Point[] = [];
 
@@ -96,6 +98,36 @@
 		isBuilding: true
 	});
 
+	const displacement = new Vector3();
+	let distance = 0;
+	const selectSingle = (groundLastPosition: Vector3, mouseBtn: number) => {
+		const closeUnits: Unit[] = [];
+		selectPoint.copy(groundLastPosition.add(cursorOffset));
+		selectPoint = selectPoint;
+		$units.forEach((unit) => {
+			displacement.subVectors(selectPoint, unit.currentPosition);
+			distance = displacement.length();
+			if (
+				distance < 1 &&
+				(unit.visible || unit.factionId === 0) &&
+				!(unit.factionId === 0 && mouseBtn === 2)
+			) {
+				closeUnits.push(unit);
+			}
+		});
+
+		if (closeUnits.length === 1) {
+			$selectedUnits = { units: closeUnits[0].id, mouseBtn: mouseBtn };
+			return true;
+		} else if (closeUnits.length > 1) {
+			const cu = findClosestUnit(groundLastPosition, closeUnits);
+			if (!cu) return false;
+			$selectedUnits = { units: cu.id, mouseBtn: mouseBtn };
+			return true;
+		}
+		return false;
+	};
+
 	const selectArea = (mouseUpPosition: Vector2, groundLastPosition: Vector3) => {
 		groundSelectionPoints.length = 0;
 		raycaster.setFromCamera(new Vector2(mouseDownPosition.x, mouseDownPosition.y), $camera);
@@ -118,7 +150,7 @@
 			z: raycaster.intersectObject(ground)[0].point.z
 		});
 
-		let selectedUnits: string[] = [];
+		let sUnits: string[] = [];
 		$units.forEach((unit) => {
 			if (
 				isPointInside(
@@ -126,10 +158,10 @@
 					groundSelectionPoints
 				)
 			) {
-				selectedUnits.push(unit.id);
+				sUnits.push(unit.id);
 			}
 		});
-		$selectedUnit = selectedUnits;
+		$selectedUnits = { units: sUnits, mouseBtn: 0 };
 	};
 
 	useTask((delta) => {
@@ -152,6 +184,10 @@
 <T.DirectionalLight intensity={3} position={[5, 10, 8]} />
 <T.AmbientLight intensity={0.6} />
 
+<!-- <T.Mesh scale={0.3} position.x={selectPoint.x} position.z={selectPoint.z}>
+	<T.BoxGeometry />
+	<T.MeshStandardMaterial color="red" />
+</T.Mesh> -->
 <!-- {#each groundSelectionPoints as gsp}
 	<T.Mesh scale={0.3} position.x={gsp.x} position.z={gsp.z}>
 		<T.BoxGeometry />
@@ -178,8 +214,8 @@
 	on:pointerdown={(e) => {
 		if (e.nativeEvent.button === 0) {
 			// left mouse btn
-			$dragBox.mouseDown = true;
 			mouseDownPosition.set(e.pointer.x, e.pointer.y);
+			$dragBox.mouseDown = true;
 			mouseDown = true;
 			mouseDragged = false;
 			$dragBox.x = e.nativeEvent.clientX;
@@ -189,27 +225,31 @@
 	on:pointermove={(e) => {
 		$cursorPosition.x = e.nativeEvent.clientX;
 		$cursorPosition.y = e.nativeEvent.clientY;
-		if (mouseDown) {
-			mouseDragged = true;
-		}
+		mouseDragged = mouseDown;
 	}}
 	on:pointerup={(e) => {
 		if (e.nativeEvent.button === 2) {
 			// right mouse btn
+			if (selectSingle(e.point, 2)) {
+				return;
+			}
 			moveTarget.set(e.point.x, 0, e.point.z);
 			moveTarget = moveTarget;
-
 			if (
-				(typeof $selectedUnit === 'number' && $selectedUnit > -1) ||
-				(Array.isArray($selectedUnit) && $selectedUnit.length > 0)
+				(typeof $selectedUnits.units === 'number' && $selectedUnits.units > -1) ||
+				(Array.isArray($selectedUnits.units) && $selectedUnits.units.length > 0)
 			)
 				movePointOpacity = 1;
 		} else if (e.nativeEvent.button === 0) {
 			// left mouse btn
 			$dragBox.mouseDown = false;
 			mouseDown = false;
-			$selectedUnit = '';
-			if (mouseDragged) selectArea(e.pointer, e.point);
+			$selectedUnits.units = '';
+			if (mouseDragged) {
+				selectArea(e.pointer, e.point);
+			} else {
+				selectSingle(e.point, 0);
+			}
 		}
 	}}
 >

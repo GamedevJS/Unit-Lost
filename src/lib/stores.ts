@@ -29,4 +29,7 @@ export const dragBox = writable({
 });
 
 export const units: Writable<Unit[]> = writable([]);
-export const selectedUnit: Writable<string | string[]> = writable('');
+export const selectedUnits: Writable<{ units: string | string[]; mouseBtn: number }> = writable({
+	units: '',
+	mouseBtn: 0
+});
