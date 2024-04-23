@@ -56,6 +56,16 @@ export function isPointInside(point: Point, points: Point[]): boolean {
 	return inside;
 }
 
+export function isPointInSquareRadius(point: Point, squareCenter: Point, radius = 1) {
+	let square = [
+		{ x: squareCenter.x + 0.5 + radius, z: squareCenter.z + 0.5 + radius },
+		{ x: squareCenter.x + 0.5 + radius, z: squareCenter.z - 0.5 - radius },
+		{ x: squareCenter.x - 0.5 - radius, z: squareCenter.z - 0.5 - radius },
+		{ x: squareCenter.x - 0.5 - radius, z: squareCenter.z + 0.5 + radius }
+	];
+	return isPointInside(point, square);
+}
+
 /**
  * Returns the closet 2D position for a given 2D point from an array of 2D positions.
  */

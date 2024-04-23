@@ -16,6 +16,8 @@ export type Unit = {
 	visible: boolean;
 	distance: number;
 	isBuilding: boolean;
+	hasPower?: boolean;
+	notYetPlaced?: boolean;
 };
 
 export type SelectedUnits = { units: Unit[]; mouseBtn: number };

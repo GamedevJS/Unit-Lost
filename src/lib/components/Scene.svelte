@@ -1,9 +1,16 @@
 <script lang="ts">
 	import { T, useTask, useThrelte } from '@threlte/core';
-	import { Grid, interactivity, useTexture } from '@threlte/extras';
+	import { Grid, interactivity, useFBO, useTexture } from '@threlte/extras';
 	import { Mesh, Vector3, Raycaster, Vector2 } from 'three';
-	import { dragBox, cursorPosition, units, selectedUnits, game } from '$lib/stores';
-	import { generateId, isPointInside, findClosestUnit } from '$lib/utils';
+	import {
+		dragBox,
+		cursorPosition,
+		units,
+		selectedUnits,
+		game,
+		cursorGroundPosition
+	} from '$lib/stores';
+	import { generateId, isPointInside, findClosestUnit, isPointInSquareRadius } from '$lib/utils';
 	import type { Point, Unit } from '$lib/types';
 
 	import { onDestroy } from 'svelte';
@@ -35,7 +42,7 @@
 
 	let row = -10;
 	let col = -10;
-	let unitCount = 100;
+	let unitCount = 50;
 	for (let i = 0; i < unitCount; i++) {
 		row++;
 		if (row > 10) {
@@ -106,6 +113,7 @@
 
 	const displacement = new Vector3();
 	let distance = 0;
+
 	const selectSingle = (groundLastPosition: Vector3, mouseBtn: number) => {
 		const closeUnits: Unit[] = [];
 		selectPoint.copy(groundLastPosition);
@@ -163,12 +171,47 @@
 				isPointInside(
 					{ x: unit.currentPosition.x, z: unit.currentPosition.z },
 					groundSelectionPoints
-				)
+				) &&
+				!unit.isBuilding
 			) {
 				sUnits.push(unit);
 			}
 		});
 		$selectedUnits = { units: sUnits, mouseBtn: 0 };
+	};
+
+	const placeBuilding = () => {
+		let buildingToPlace = $units.findIndex((u) => u.notYetPlaced);
+		if (buildingToPlace > -1) {
+			let buildingClash = false;
+			$units.forEach((u) => {
+				if (
+					u.isBuilding &&
+					!u.notYetPlaced &&
+					isPointInSquareRadius(
+						{
+							x: $units[buildingToPlace].currentPosition.x,
+							z: $units[buildingToPlace].currentPosition.z
+						},
+						{ x: u.currentPosition.x, z: u.currentPosition.z }
+					)
+				) {
+					buildingClash = true;
+					console.log('trying to place: ', {
+						x: $units[buildingToPlace].currentPosition.x,
+						z: $units[buildingToPlace].currentPosition.z
+					});
+					console.log('at: ', {
+						x: u.currentPosition.x,
+						z: u.currentPosition.z
+					});
+				}
+			});
+			if (!buildingClash) {
+				$units[buildingToPlace].notYetPlaced = false;
+				$game.placingBuilding = false;
+			}
+		}
 	};
 
 	useTask((delta) => {
@@ -232,11 +275,14 @@
 	on:pointermove={(e) => {
 		$cursorPosition.x = e.nativeEvent.clientX;
 		$cursorPosition.y = e.nativeEvent.clientY;
+		$cursorGroundPosition.x = e.point.x;
+		$cursorGroundPosition.z = e.point.z;
 		mouseDragged = mouseDown;
 	}}
 	on:pointerup={(e) => {
 		if (e.nativeEvent.button === 2) {
 			// right mouse btn
+			if ($selectedUnits.units.find((u) => u.isBuilding)) return; // add rally point?
 			if (selectSingle(e.point, 2)) {
 				return;
 			}
@@ -250,6 +296,8 @@
 			$selectedUnits.units = [];
 			if (mouseDragged) {
 				selectArea(e.pointer, e.point);
+			} else if ($game.placingBuilding) {
+				placeBuilding();
 			} else {
 				selectSingle(e.point, 0);
 			}

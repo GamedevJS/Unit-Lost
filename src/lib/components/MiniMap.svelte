@@ -31,6 +31,7 @@
 		fogCanvasContext.fillRect(0, 0, 128, 128);
 		u.forEach((unit, i) => {
 			if (!unitsCanvasContext) return;
+			if (unit.notYetPlaced) return;
 			if (unit.factionId === 0) {
 				unitsCanvasContext.fillStyle = '#F85122';
 				unitsCanvasContext.fillRect(

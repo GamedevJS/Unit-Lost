@@ -1,6 +1,32 @@
 <script lang="ts">
-	import { selectedUnits, units } from '$lib/stores';
+	import { selectedUnits, units, game } from '$lib/stores';
 	import { data } from '$lib/database';
+	import { generateId } from '$lib/utils';
+	import { Vector3 } from 'three';
+
+	const addNewBuilding = (typeId: number) => {
+		$selectedUnits.units = [];
+		$units.push({
+			id: generateId(),
+			typeId,
+			factionId: 0,
+			targetId: '',
+			selected: false,
+			moveTo: new Vector3(2, 0.25, 2),
+			currentPosition: new Vector3(2, 0.25, 2),
+			state: 'idle',
+			color: 'white',
+			hold: false,
+			health: 10,
+			maxHealth: 10,
+			distance: 0,
+			visible: false,
+			isBuilding: true,
+			notYetPlaced: true
+		});
+		$units = $units;
+		$game.placingBuilding = true;
+	};
 </script>
 
 <div id="statusBoxes">
@@ -16,7 +42,11 @@
 		</div>
 	{/if}
 	{#if $selectedUnits.units.length === 1}
-		<div id="selectedUnitOptions">selected unit options</div>
+		<div id="selectedUnitOptions">
+			{#if $selectedUnits.units[0].typeId === 101}
+				<button on:click={() => addNewBuilding(102)}>Add new building</button>
+			{/if}
+		</div>
 	{/if}
 </div>
 

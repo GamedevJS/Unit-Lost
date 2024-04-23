@@ -3,7 +3,8 @@ import type { Unit, SelectedUnits } from '$lib/types';
 
 export const game = writable({
 	dev: false,
-	useEdgeCamera: false
+	useEdgeCamera: false,
+	placingBuilding: false
 });
 
 export const cameraPosition = writable({
@@ -20,6 +21,11 @@ export const cameraGroundPosition = derived(cameraPosition, (cp) => ({
 export const cursorPosition = writable({
 	x: 300,
 	y: 300
+});
+
+export const cursorGroundPosition = writable({
+	x: 0,
+	z: 0
 });
 
 export const dragBox = writable({

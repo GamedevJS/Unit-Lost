@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { T, useTask } from '@threlte/core';
-	import { InstancedMesh, Instance } from '@threlte/extras';
-	import { selectedUnits, units } from '$lib/stores';
+	import { InstancedMesh, Instance, useInstancedSprite } from '@threlte/extras';
+	import { cursorGroundPosition, selectedUnits, units } from '$lib/stores';
 	import { Vector3, InstancedMesh as InstancedMeshType } from 'three';
-	import { generateGrid } from '$lib/utils';
+	import { generateGrid, isPointInSquareRadius } from '$lib/utils';
 	import type { Unit, SelectedUnits } from '$lib/types';
 
 	export let moveTarget: Vector3;
@@ -28,7 +28,7 @@
 		}
 	};
 
-	const selectUnit = (su: SelectedUnits) => {
+	const unitsSelected = (su: SelectedUnits) => {
 		if (su === undefined) return;
 		if (su.mouseBtn === 0) {
 			$units.forEach((unit, index, array) => {
@@ -39,6 +39,7 @@
 				}
 			});
 		} else {
+			console.log(su);
 			if (su.units.length < 1) return;
 			let targetedEnemyId = '';
 			$units.forEach((unit, index) => {
@@ -57,7 +58,7 @@
 		$units = $units;
 	};
 
-	$: selectUnit($selectedUnits);
+	$: unitsSelected($selectedUnits);
 
 	const moveUnits = (destination: Vector3) => {
 		if (!destination) return;
@@ -83,9 +84,10 @@
 	let closeEnemies: Unit[];
 	const findCloseEnemies = (unit: Unit) => {
 		closeEnemies = [];
+		if (unit.notYetPlaced) return closeEnemies;
 		for (let i = 0; i < $units.length; i++) {
 			let sibling = $units[i];
-			if (sibling.factionId !== unit.factionId) {
+			if (sibling.factionId !== unit.factionId && !sibling.notYetPlaced) {
 				displacement.subVectors(sibling.currentPosition, unit.currentPosition);
 				distance = displacement.length();
 				if (distance < 5) {
@@ -127,7 +129,7 @@
 		return unit;
 	};
 
-	let foundEnemies: Unit[];
+	let foundEnemies: Unit[] = [];
 	let allFoundEnemies: Unit[] = [];
 	let savedFoundEnemies: Unit[] = [];
 	let enemyInFiringRange: Unit | undefined;
@@ -156,7 +158,24 @@
 				object.splice(index, 1);
 			}
 
-			if (unit.isBuilding) return;
+			if (unit.notYetPlaced) {
+				arrayUpdated = true;
+				unit.currentPosition.set(
+					Math.round($cursorGroundPosition.x) + 0.5,
+					0,
+					Math.round($cursorGroundPosition.z) + 0.5
+				);
+			}
+
+			if (unit.isBuilding) {
+				if (unit.hasPower || unit.typeId === 102) {
+					unit.color = 'white';
+				} else {
+					unit.color = 'grey';
+				}
+
+				return;
+			}
 
 			if (unit.state === 'moving') {
 				arrayUpdated = true;
@@ -276,7 +295,10 @@
 <InstancedMesh name="buildings" frustumCulled={false}>
 	{#each $units as unit, i (unit.id)}
 		{#if (unit.factionId === 0 || unit.visible) && unit.isBuilding}
-			<Instance position={[unit.currentPosition.x, 0.5, unit.currentPosition.z]} color={'grey'} />
+			<Instance
+				position={[unit.currentPosition.x, 0.5, unit.currentPosition.z]}
+				color={unit.color}
+			/>
 		{/if}
 	{/each}
 	<T.BoxGeometry />
