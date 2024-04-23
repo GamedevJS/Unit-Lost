@@ -23,7 +23,8 @@
 				state: 'idle',
 				color: 'white',
 				hold: false,
-				health: 1,
+				health: 10,
+				maxHealth: 10,
 				distance: 0,
 				visible: false,
 				isBuilding: false
@@ -44,7 +45,8 @@
 				state: 'idle',
 				color: 'white',
 				hold: false,
-				health: 1,
+				health: 10,
+				maxHealth: 10,
 				distance: 0,
 				visible: false,
 				isBuilding: true

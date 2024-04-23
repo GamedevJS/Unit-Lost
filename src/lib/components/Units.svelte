@@ -34,9 +34,12 @@
 			$units.forEach((unit, index, array) => {
 				unit.selected = false;
 				if (!Array.isArray(su.units)) return;
-				if (unit.factionId === 0 && su.units.find((u) => u.id === unit.id)) unit.selected = true;
+				if (unit.factionId === 0 && su.units.find((u) => u.id === unit.id)) {
+					unit.selected = true;
+				}
 			});
 		} else {
+			if (su.units.length < 1) return;
 			let targetedEnemyId = '';
 			$units.forEach((unit, index) => {
 				if (unit.selected) {
@@ -49,7 +52,6 @@
 				if (!targetedEnemy) return;
 				attackPoint = targetedEnemy.currentPosition;
 				attackPointOpacity = 1;
-				$units = $units;
 			}
 		}
 		$units = $units;
@@ -144,6 +146,12 @@
 			enemyInFiringRange = foundEnemies.find((u) => u.distance < 3);
 
 			if (unit.health < 0) {
+				$selectedUnits.units.forEach((u, i, o) => {
+					if (u.health < 0) {
+						o.splice(i, 1);
+					}
+				});
+				$selectedUnits = $selectedUnits;
 				arrayUpdated = true;
 				object.splice(index, 1);
 			}
@@ -225,7 +233,6 @@
 <InstancedMesh name="units" bind:ref={unitsMesh}>
 	{#each $units as unit (unit.id)}
 		{#if (unit.factionId === 0 || unit.visible) && !unit.isBuilding}
-			<!-- TODO: move these click events to parent -->
 			<Instance
 				position={[unit.currentPosition.x, 0.25, unit.currentPosition.z]}
 				color={unit.color}
@@ -240,7 +247,7 @@
 	{#each $units as unit, i (unit.id)}
 		<Instance
 			rotation.x={-1.57}
-			scale={unit.selected ? 0.3 : 0}
+			scale={unit.selected ? (unit.isBuilding ? 1.0 : 0.3) : 0}
 			position={[unit.currentPosition.x, 0, unit.currentPosition.z]}
 		/>
 	{/each}
@@ -250,12 +257,14 @@
 
 <InstancedMesh name="health bars" frustumCulled={false}>
 	{#each $units as unit, i (unit.id)}
-		{#if (unit.factionId === 0 || unit.visible) && unit.health < 1}
+		{#if (unit.factionId === 0 || unit.visible) && unit.health < unit.maxHealth}
 			<Instance
 				rotation.x={-1.57}
 				rotation.z={-0.78}
-				scale.y={unit.health}
-				position={[unit.currentPosition.x, 0.6, unit.currentPosition.z]}
+				scale.y={unit.isBuilding
+					? (unit.health / unit.maxHealth) * 2
+					: unit.health / unit.maxHealth}
+				position={[unit.currentPosition.x, unit.isBuilding ? 2.0 : 0.6, unit.currentPosition.z]}
 				color={unit.health > 0.5 ? 'green' : 'red'}
 			/>
 		{/if}
@@ -267,7 +276,7 @@
 <InstancedMesh name="buildings" frustumCulled={false}>
 	{#each $units as unit, i (unit.id)}
 		{#if (unit.factionId === 0 || unit.visible) && unit.isBuilding}
-			<Instance position={[unit.currentPosition.x, 0.5, unit.currentPosition.z]} color={'white'} />
+			<Instance position={[unit.currentPosition.x, 0.5, unit.currentPosition.z]} color={'grey'} />
 		{/if}
 	{/each}
 	<T.BoxGeometry />

@@ -53,7 +53,8 @@
 			state: 'idle',
 			color: 'white',
 			hold: false,
-			health: 1,
+			health: 10,
+			maxHealth: 10,
 			visible: false,
 			distance: 0,
 			isBuilding: false
@@ -77,7 +78,8 @@
 			state: 'idle',
 			color: 'white',
 			hold: false,
-			health: 1,
+			health: 10,
+			maxHealth: 10,
 			visible: false,
 			distance: 0,
 			isBuilding: false
@@ -95,7 +97,8 @@
 		state: 'idle',
 		color: 'white',
 		hold: false,
-		health: 1,
+		health: 100,
+		maxHealth: 100,
 		visible: false,
 		distance: 0,
 		isBuilding: true
@@ -261,7 +264,7 @@
 				image2: 'rock.png',
 				image3: 'grass.png'
 			}}
-			repeat={15}
+			repeat={25}
 			{blendImage}
 			{canvasTexture}
 			noiseOffset={time / 5}

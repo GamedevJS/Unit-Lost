@@ -1,34 +1,21 @@
 <script lang="ts">
-	import { selectedUnits } from '$lib/stores';
-	import type { SelectedUnits } from '$lib/types';
+	import { selectedUnits, units } from '$lib/stores';
 	import { data } from '$lib/database';
-
-	let info: any[] = [];
-
-	const lookUpData = (su: SelectedUnits) => {
-		if (su.units.length === 0) return;
-		info = [];
-		su.units.forEach((unit) => {
-			let unitType = data.units.find((unitData) => unitData.id === unit.typeId);
-
-			info.push(unitType);
-		});
-		info = info;
-	};
-
-	$: lookUpData($selectedUnits);
 </script>
 
 <div id="statusBoxes">
 	<div id="resources">resources</div>
 	{#if $selectedUnits.units.length > 0}
 		<div id="selectedUnit">
-			{#if $selectedUnits.units.length === 1}
-				{info[0].name}
-			{:else if $selectedUnits.units.length > 1}
-				<br />
-			{/if}
+			{#each $units as unit}
+				{#if unit.selected}
+					Unit: {data.units[unit.typeId.toString()].name}<br />
+					Health: {Math.ceil(unit.health)} / {unit.maxHealth}<br />
+				{/if}
+			{/each}
 		</div>
+	{/if}
+	{#if $selectedUnits.units.length === 1}
 		<div id="selectedUnitOptions">selected unit options</div>
 	{/if}
 </div>

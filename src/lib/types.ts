@@ -12,6 +12,7 @@ export type Unit = {
 	color: string;
 	hold: boolean;
 	health: number;
+	maxHealth: number;
 	visible: boolean;
 	distance: number;
 	isBuilding: boolean;
