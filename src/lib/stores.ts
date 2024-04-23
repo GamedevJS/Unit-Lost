@@ -4,8 +4,13 @@ import type { Unit, SelectedUnits } from '$lib/types';
 export const game = writable({
 	dev: false,
 	useEdgeCamera: false,
-	placingBuilding: false
+	placingBuilding: false,
+	credits: 50,
+	supply: 3,
+	unitCount: 0
 });
+
+export const gameTime = writable(0);
 
 export const cameraPosition = writable({
 	x: 10,

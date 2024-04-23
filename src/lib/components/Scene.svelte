@@ -3,6 +3,7 @@
 	import { Grid, interactivity, useFBO, useTexture } from '@threlte/extras';
 	import { Mesh, Vector3, Raycaster, Vector2 } from 'three';
 	import {
+		gameTime,
 		dragBox,
 		cursorPosition,
 		units,
@@ -43,7 +44,7 @@
 	let row = -10;
 	let col = -10;
 	let unitCount = 50;
-	for (let i = 0; i < unitCount; i++) {
+	/* 	for (let i = 0; i < unitCount; i++) {
 		row++;
 		if (row > 10) {
 			row = -10;
@@ -66,7 +67,7 @@
 			distance: 0,
 			isBuilding: false
 		});
-	}
+	} */
 	col = 5;
 	for (let i = 0; i < unitCount; i++) {
 		row++;
@@ -93,6 +94,7 @@
 		});
 	}
 
+	// starting citidel
 	$units.push({
 		id: generateId(),
 		typeId: 101,
@@ -106,6 +108,26 @@
 		hold: false,
 		health: 100,
 		maxHealth: 100,
+		visible: false,
+		distance: 0,
+		isBuilding: true,
+		hasPower: true
+	});
+
+	// starting power station
+	$units.push({
+		id: generateId(),
+		typeId: 102,
+		targetId: '',
+		factionId: 0,
+		selected: false,
+		moveTo: new Vector3(),
+		currentPosition: new Vector3(-1.5, 0, -0.5),
+		state: 'idle',
+		color: 'white',
+		hold: false,
+		health: 10,
+		maxHealth: 10,
 		visible: false,
 		distance: 0,
 		isBuilding: true
@@ -180,43 +202,10 @@
 		$selectedUnits = { units: sUnits, mouseBtn: 0 };
 	};
 
-	const placeBuilding = () => {
-		let buildingToPlace = $units.findIndex((u) => u.notYetPlaced);
-		if (buildingToPlace > -1) {
-			let buildingClash = false;
-			$units.forEach((u) => {
-				if (
-					u.isBuilding &&
-					!u.notYetPlaced &&
-					isPointInSquareRadius(
-						{
-							x: $units[buildingToPlace].currentPosition.x,
-							z: $units[buildingToPlace].currentPosition.z
-						},
-						{ x: u.currentPosition.x, z: u.currentPosition.z }
-					)
-				) {
-					buildingClash = true;
-					console.log('trying to place: ', {
-						x: $units[buildingToPlace].currentPosition.x,
-						z: $units[buildingToPlace].currentPosition.z
-					});
-					console.log('at: ', {
-						x: u.currentPosition.x,
-						z: u.currentPosition.z
-					});
-				}
-			});
-			if (!buildingClash) {
-				$units[buildingToPlace].notYetPlaced = false;
-				$game.placingBuilding = false;
-			}
-		}
-	};
-
 	useTask((delta) => {
 		movePointOpacity -= delta * 2;
 		time += delta;
+		$gameTime = time * 1000;
 	});
 
 	onDestroy(() => {
@@ -291,13 +280,18 @@
 			if ($selectedUnits.units.length > 0) movePointOpacity = 1;
 		} else if (e.nativeEvent.button === 0) {
 			// left mouse btn
+
+			if ($game.placingBuilding) {
+				moveTarget.set(e.point.x, 0, e.point.z);
+				moveTarget = moveTarget;
+				return;
+			}
+
 			$dragBox.mouseDown = false;
 			mouseDown = false;
 			$selectedUnits.units = [];
 			if (mouseDragged) {
 				selectArea(e.pointer, e.point);
-			} else if ($game.placingBuilding) {
-				placeBuilding();
 			} else {
 				selectSingle(e.point, 0);
 			}
