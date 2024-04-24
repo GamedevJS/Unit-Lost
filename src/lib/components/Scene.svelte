@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { T, useTask, useThrelte } from '@threlte/core';
 	import { Grid, interactivity, useFBO, useTexture } from '@threlte/extras';
-	import { Mesh, Vector3, Raycaster, Vector2 } from 'three';
+	import { Mesh, Vector3, Raycaster, Vector2, Quaternion, Euler } from 'three';
 	import {
 		gameTime,
 		dragBox,
@@ -44,7 +44,7 @@
 	let row = -10;
 	let col = -10;
 	let unitCount = 50;
-	/* 	for (let i = 0; i < unitCount; i++) {
+	for (let i = 0; i < unitCount; i++) {
 		row++;
 		if (row > 10) {
 			row = -10;
@@ -58,6 +58,9 @@
 			selected: false,
 			moveTo: new Vector3(row, 0.25, col),
 			currentPosition: new Vector3(row, 0.25, col),
+			euler: new Euler(),
+			quaternion: new Quaternion(),
+			rotateDestination: new Quaternion(),
 			state: 'idle',
 			color: 'white',
 			hold: false,
@@ -67,7 +70,7 @@
 			distance: 0,
 			isBuilding: false
 		});
-	} */
+	}
 	col = 5;
 	for (let i = 0; i < unitCount; i++) {
 		row++;
@@ -82,6 +85,9 @@
 			factionId: 1,
 			selected: false,
 			moveTo: new Vector3(row, 0.25, col),
+			quaternion: new Quaternion(),
+			euler: new Euler(),
+			rotateDestination: new Quaternion(),
 			currentPosition: new Vector3(row, 0.25, col),
 			state: 'idle',
 			color: 'white',
@@ -102,6 +108,8 @@
 		factionId: 0,
 		selected: false,
 		moveTo: new Vector3(),
+		quaternion: new Quaternion(),
+		euler: new Euler(),
 		currentPosition: new Vector3(0.5, 0, 0.5),
 		state: 'idle',
 		color: 'white',
@@ -122,6 +130,8 @@
 		factionId: 0,
 		selected: false,
 		moveTo: new Vector3(),
+		quaternion: new Quaternion(),
+		euler: new Euler(),
 		currentPosition: new Vector3(-1.5, 0, -0.5),
 		state: 'idle',
 		color: 'white',
@@ -275,7 +285,7 @@
 			if (selectSingle(e.point, 2)) {
 				return;
 			}
-			moveTarget.set(e.point.x, 0, e.point.z);
+			moveTarget.set(e.point.x, 0.25, e.point.z);
 			moveTarget = moveTarget;
 			if ($selectedUnits.units.length > 0) movePointOpacity = 1;
 		} else if (e.nativeEvent.button === 0) {

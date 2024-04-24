@@ -2,7 +2,7 @@
 	import { selectedUnits, units, game, gameTime } from '$lib/stores';
 	import { data } from '$lib/database';
 	import { generateId, isPointInSquareRadius } from '$lib/utils';
-	import { Vector3 } from 'three';
+	import { Vector3, Quaternion, Euler } from 'three';
 
 	let date = new Date();
 
@@ -16,6 +16,8 @@
 			selected: false,
 			moveTo: new Vector3(2, 0.25, 2),
 			currentPosition: new Vector3(2, 0.25, 2),
+			quaternion: new Quaternion(),
+			euler: new Euler(),
 			state: 'idle',
 			color: 'white',
 			hold: false,
@@ -42,6 +44,9 @@
 			selected: false,
 			moveTo: new Vector3(2, 0.25, 2),
 			currentPosition: new Vector3(2, 0.25, 2),
+			quaternion: new Quaternion(),
+			euler: new Euler(),
+			rotateDestination: new Quaternion(),
 			state: 'idle',
 			color: 'white',
 			hold: false,

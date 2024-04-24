@@ -1,4 +1,4 @@
-import type { Vector3 } from 'three';
+import type { Vector3, Quaternion, Euler } from 'three';
 
 export type Unit = {
 	id: string;
@@ -7,6 +7,9 @@ export type Unit = {
 	targetId: string;
 	selected: boolean;
 	moveTo: Vector3;
+	rotateDestination?: Quaternion;
+	quaternion?: Quaternion;
+	euler: Euler;
 	currentPosition: Vector3;
 	state: 'idle' | 'moving' | 'attacking' | 'following';
 	color: string;

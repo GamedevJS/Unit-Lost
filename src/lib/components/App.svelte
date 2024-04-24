@@ -2,7 +2,7 @@
 	import { Canvas } from '@threlte/core';
 	import { game, units, cameraGroundPosition } from '$lib/stores';
 	import { generateId } from '$lib/utils';
-	import { Vector3 } from 'three';
+	import { Vector3, Quaternion, Euler } from 'three';
 	import Scene from './Scene.svelte';
 	import DragBox from './ui/DragBox.svelte';
 	import StatusBoxes from './ui/StatusBoxes.svelte';
@@ -19,6 +19,8 @@
 				targetId: '',
 				selected: false,
 				moveTo: new Vector3($cameraGroundPosition.x, 0.25, $cameraGroundPosition.z),
+				quaternion: new Quaternion(),
+				euler: new Euler(),
 				currentPosition: new Vector3($cameraGroundPosition.x, 0.25, $cameraGroundPosition.z),
 				state: 'idle',
 				color: 'white',
@@ -41,6 +43,8 @@
 				targetId: '',
 				selected: false,
 				moveTo: new Vector3($cameraGroundPosition.x, 0.25, $cameraGroundPosition.z),
+				quaternion: new Quaternion(),
+				euler: new Euler(),
 				currentPosition: new Vector3($cameraGroundPosition.x, 0.25, $cameraGroundPosition.z),
 				state: 'idle',
 				color: 'white',

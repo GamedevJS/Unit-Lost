@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { T, useTask } from '@threlte/core';
-	import { InstancedMesh, Instance, useInstancedSprite } from '@threlte/extras';
+	import { InstancedMesh, Instance, useInstancedSprite, useGltf } from '@threlte/extras';
 	import { cursorGroundPosition, game, selectedUnits, units } from '$lib/stores';
-	import { Vector3, InstancedMesh as InstancedMeshType } from 'three';
+	import { Vector3, InstancedMesh as InstancedMeshType, Matrix4 } from 'three';
 	import { generateGrid, isPointInSquareRadius } from '$lib/utils';
 	import type { Unit, SelectedUnits } from '$lib/types';
 
@@ -15,6 +15,10 @@
 	let attackPoint = new Vector3();
 	const displacement = new Vector3();
 	const velocity = new Vector3();
+	const rotationMatrix = new Matrix4();
+	const upVector = new Vector3(0, 1, 0);
+
+	const gltf = useGltf('/models/unit-transformed.glb', { useDraco: true });
 
 	const moveVelocity = (start: Vector3, end: Vector3, speed: number) => {
 		displacement.subVectors(end, start);
@@ -180,6 +184,10 @@
 		unit.state = 'moving';
 		unit.color = 'blue';
 		if (moveTo) unit.moveTo = moveTo;
+		if (unit.rotateDestination) {
+			rotationMatrix.lookAt(unit.currentPosition, unit.moveTo, upVector);
+			unit.rotateDestination.setFromRotationMatrix(rotationMatrix);
+		}
 		unit.targetId = targetId;
 		return unit;
 	};
@@ -234,7 +242,6 @@
 				} else {
 					unit.color = 'grey';
 				}
-
 				return;
 			}
 
@@ -254,12 +261,22 @@
 						unit.currentPosition.add(
 							moveVelocity(unit.currentPosition, target.currentPosition, delta * 2)
 						);
+						if (unit.rotateDestination && unit.quaternion) {
+							rotationMatrix.lookAt(unit.currentPosition, target.currentPosition, upVector);
+							unit.rotateDestination.setFromRotationMatrix(rotationMatrix);
+							unit.quaternion.rotateTowards(unit.rotateDestination, delta * 10);
+							unit.euler.setFromQuaternion(unit.quaternion);
+						}
 					} else {
 						unit = setStateAttacking(unit, target.id);
 					}
 				} else {
 					// moving to cursor click
 					unit.currentPosition.add(moveVelocity(unit.currentPosition, unit.moveTo, delta * 2));
+					if (unit.rotateDestination && unit.quaternion) {
+						unit.quaternion.rotateTowards(unit.rotateDestination, delta * 10);
+						unit.euler.setFromQuaternion(unit.quaternion);
+					}
 					unit.color = 'blue';
 					if (distance < 0.1) {
 						if (enemyInFiringRange) {
@@ -283,6 +300,12 @@
 					return;
 				}
 				$units[targetIndex].health -= delta;
+				if (unit.rotateDestination && unit.quaternion) {
+					rotationMatrix.lookAt(unit.currentPosition, target.currentPosition, upVector);
+					unit.rotateDestination.setFromRotationMatrix(rotationMatrix);
+					unit.quaternion.rotateTowards(unit.rotateDestination, delta * 10);
+					unit.euler.setFromQuaternion(unit.quaternion);
+				}
 				displacement.subVectors(target.currentPosition, unit.currentPosition);
 				distance = displacement.length();
 				if (distance > 3) {
@@ -310,18 +333,23 @@
 	});
 </script>
 
-<InstancedMesh name="units" bind:ref={unitsMesh}>
-	{#each $units as unit (unit.id)}
-		{#if (unit.factionId === 0 || unit.visible) && !unit.isBuilding}
-			<Instance
-				position={[unit.currentPosition.x, 0.25, unit.currentPosition.z]}
-				color={unit.color}
-			/>
-		{/if}
-	{/each}
-	<T.IcosahedronGeometry args={[0.15, 1]} />
-	<T.MeshStandardMaterial color="#FFFFFF" />
-</InstancedMesh>
+{#await gltf then gltf}
+	<InstancedMesh name="units" bind:ref={unitsMesh} geometry={gltf.nodes.Mesh.geometry}>
+		{#each $units as unit (unit.id)}
+			{#if (unit.factionId === 0 || unit.visible) && !unit.isBuilding}
+				<Instance
+					scale={0.2}
+					position={[unit.currentPosition.x, 0.25, unit.currentPosition.z]}
+					color={unit.color}
+					rotation.x={unit.euler.x}
+					rotation.y={unit.euler.y}
+					rotation.z={unit.euler.z}
+				/>
+			{/if}
+		{/each}
+		<T.MeshStandardMaterial color="#FFFFFF" />
+	</InstancedMesh>
+{/await}
 
 <InstancedMesh name="selection rings" frustumCulled={false}>
 	{#each $units as unit, i (unit.id)}
