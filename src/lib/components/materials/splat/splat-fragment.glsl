@@ -85,23 +85,19 @@ void main() {
     // smooth out texture
     vec2 smooth_uv = repeat * vUv;
     vec4 duv = vec4(dFdx(smooth_uv), dFdy(smooth_uv));
-    vec4 texture1 = textureGrad(textures[0], uv, duv.xy, duv.zw);
-    vec4 texture2 = textureGrad(textures[1], uv, duv.xy, duv.zw);
-    vec4 texture3 = textureGrad(textures[2], uv, duv.xy, duv.zw);
-
-    // colors
-    if(useColors == 1.0) {
-        texture1 = vec4(colors[0], colors[1], colors[2], 1.0);
-        texture2 = vec4(colors[3], colors[4], colors[5], 1.0);
-        texture3 = vec4(colors[6], colors[7], colors[8], 1.0);
-    }
+    vec4 texture0 = textureGrad(textures[0], uv, duv.xy, duv.zw);
+    vec4 texture1 = textureGrad(textures[1], uv, duv.xy, duv.zw);
+    vec4 texture2 = textureGrad(textures[2], uv, duv.xy, duv.zw);
+    vec4 texture3 = textureGrad(textures[3], uv, duv.xy, duv.zw);
 
     // texture
-    vec4 tex = (smoothstep(0.00, 1.00, blendMap.r)) * texture1;
+    vec4 tex1 = (smoothstep(0.00, 1.00, blendMap.r)) * texture1;
     vec4 tex2 = (smoothstep(0.00, 1.00, blendMap.g)) * texture2;
     vec4 tex3 = (smoothstep(0.00, 1.00, blendMap.b)) * texture3;
 
-    vec4 finalOutput = tex + tex2 + tex3;
+    vec4 finalOutput = vec4(mix(texture0.rgb, tex1.rgb, tex1.a), 1.0);
+    finalOutput = vec4(mix(finalOutput.rgb, tex2.rgb, tex2.a), 1.0);
+    finalOutput = vec4(mix(finalOutput.rgb, tex3.rgb, tex3.a), 1.0);
 
     // noise 
     float f = snoise(vec3(noiseScale * vUv, noiseOffset));
@@ -113,6 +109,7 @@ void main() {
     float clampedRed = clamp(canvasTexture.r + opacity, 0.0, 1.0);
 
     gl_FragColor = vec4(finalOutput.r, finalOutput.g, finalOutput.b, finalOutput.a * clampedRed);
+   // gl_FragColor = vec4(finalOutput.r, finalOutput.g, finalOutput.b, finalOutput.a);
 
     #include <tonemapping_fragment>
     #include <colorspace_fragment> 

@@ -25,6 +25,7 @@
 	interactivity();
 
 	const blendImage = useTexture('groundSplat.png');
+	//const blendImage = useTexture('black.png');
 
 	const { camera } = useThrelte();
 
@@ -244,7 +245,7 @@
 	</T.Mesh>
 {/each} -->
 
-<Grid
+<!-- <Grid
 	gridSize={[50, 50]}
 	cellColor={'#46536b'}
 	sectionColor="#ffffff"
@@ -252,7 +253,7 @@
 	fadeDistance={50}
 	position.y={0}
 />
-
+ -->
 <Units {moveTarget} />
 
 <T.Mesh
@@ -312,11 +313,12 @@
 	{#await blendImage then blendImage}
 		<SplatMaterial
 			images={{
-				image1: 'brick.png',
-				image2: 'rock.png',
-				image3: 'grass.png'
+				image0: 'dirt.png',
+				image1: 'rock.png',
+				image2: 'cracks.png',
+				image3: 'dirtDark.png'
 			}}
-			repeat={25}
+			repeat={18}
 			{blendImage}
 			{canvasTexture}
 			noiseOffset={time / 5}

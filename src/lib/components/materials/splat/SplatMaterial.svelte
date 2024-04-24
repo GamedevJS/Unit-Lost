@@ -32,7 +32,7 @@
 
 	const texturesLoaded = (t: any) => {
 		if (!t) return;
-		sm.uniforms.textures.value = [t.image1, t.image2, t.image3];
+		sm.uniforms.textures.value = [t.image0, t.image1, t.image2, t.image3];
 	};
 
 	$: texturesLoaded($textures);
@@ -63,7 +63,7 @@
 					colors[2][2]
 				]
 			},
-			textures: { value: [0, 0, 0] },
+			textures: { value: [0, 0, 0, 0] },
 			blendTexture: { value: blendImage },
 			canvasTexture: { value: blendImage },
 			noiseOffset: { value: noiseOffset },
