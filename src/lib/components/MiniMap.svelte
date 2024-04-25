@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { T, useTask } from '@threlte/core';
-	import { units, cameraPosition, cameraGroundPosition } from '$lib/stores';
+	import { units, cameraPosition, cameraGroundPosition, creditDrops } from '$lib/stores';
 	import { rotatePoint } from '$lib/utils';
 	import { onDestroy, onMount } from 'svelte';
 	import { CanvasTexture } from 'three';
 	import { interval } from '$lib/animation';
-	import SplatMaterial from './materials/splat/SplatMaterial.svelte';
 	import type { Unit } from '$lib/types';
 
 	export let canvasTexture: any;
@@ -21,6 +20,7 @@
 	let fogCanvasContext: CanvasRenderingContext2D | null;
 	let brush: HTMLImageElement;
 	let brushSize = 25;
+	let creditBrushSize = 10;
 
 	const updateUnitsCanvas = (u: Unit[]) => {
 		if (!unitsCanvas) return;
@@ -57,6 +57,24 @@
 				((unit.currentPosition.z + 35) / 70) * 128 - brushSize / 2,
 				brushSize,
 				brushSize
+			);
+		});
+		$creditDrops.forEach((cd) => {
+			if (!fogCanvasContext) return;
+			fogCanvasContext.drawImage(
+				brush,
+				((cd.currentPosition.x + 35) / 70) * 128 - creditBrushSize / 2,
+				((cd.currentPosition.z + 35) / 70) * 128 - creditBrushSize / 2,
+				creditBrushSize,
+				creditBrushSize
+			);
+			if (!unitsCanvasContext) return;
+			unitsCanvasContext.fillStyle = '#edc72d';
+			unitsCanvasContext.fillRect(
+				((cd.currentPosition.x + 25) / 50) * 200,
+				((cd.currentPosition.z + 25) / 50) * 200,
+				2,
+				2
 			);
 		});
 		canvasTexture.needsUpdate = true;

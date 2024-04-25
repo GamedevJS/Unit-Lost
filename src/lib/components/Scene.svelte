@@ -9,7 +9,8 @@
 		units,
 		selectedUnits,
 		game,
-		cursorGroundPosition
+		cursorGroundPosition,
+		creditDrops
 	} from '$lib/stores';
 	import { generateId, isPointInside, findClosestUnit, isPointInSquareRadius } from '$lib/utils';
 	import type { Point, Unit } from '$lib/types';
@@ -152,6 +153,14 @@
 		distance: 0,
 		isBuilding: true
 	});
+
+	for (let i = 0; i < 3; i++) {
+		$creditDrops.push({
+			id: generateId(),
+			creditAmount: 10,
+			currentPosition: new Vector3(Math.random() * 50 - 25, 0, Math.random() * 50 - 25)
+		});
+	}
 
 	const displacement = new Vector3();
 	let distance = 0;

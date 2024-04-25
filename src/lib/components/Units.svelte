@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { T, useTask } from '@threlte/core';
 	import { InstancedMesh, Instance, useInstancedSprite, useGltf } from '@threlte/extras';
-	import { cursorGroundPosition, game, selectedUnits, units } from '$lib/stores';
+	import { creditDrops, cursorGroundPosition, game, selectedUnits, units } from '$lib/stores';
 	import { Vector3, InstancedMesh as InstancedMeshType, Matrix4 } from 'three';
 	import { generateGrid, isPointInSquareRadius } from '$lib/utils';
 	import type { Unit, SelectedUnits } from '$lib/types';
@@ -10,6 +10,7 @@
 
 	let arrayUpdated = false;
 	let distance = 0;
+	let time = 0;
 	let unitsMesh: InstancedMeshType;
 	let attackPointOpacity = 0;
 	let attackPoint = new Vector3();
@@ -166,6 +167,17 @@
 		return { target: $units[targetIndex], targetIndex };
 	};
 
+	const findCloseCreditIndex = (unit: Unit) => {
+		let creditsIndex = $creditDrops.findIndex((cd) => {
+			return isPointInSquareRadius(
+				{ x: unit.currentPosition.x, z: unit.currentPosition.z },
+				{ x: cd.currentPosition.x, z: cd.currentPosition.z },
+				0.5
+			);
+		});
+		return creditsIndex;
+	};
+
 	const setStateIdle = (unit: Unit) => {
 		unit.state = 'idle';
 		unit.targetId = '';
@@ -196,9 +208,11 @@
 	let allFoundEnemies: Unit[] = [];
 	let savedFoundEnemies: Unit[] = [];
 	let enemyInFiringRange: Unit | undefined;
+	let foundCredits: Unit[] = [];
 	let target: Unit | undefined;
 	let targetIndex: number | undefined;
 	useTask((delta) => {
+		time += delta;
 		savedFoundEnemies = allFoundEnemies;
 		allFoundEnemies = [];
 		$units.forEach((unit, index, object) => {
@@ -291,6 +305,14 @@
 						} else {
 							unit = setStateIdle(unit);
 						}
+					}
+				}
+				if (unit.factionId === 0) {
+					let ci = findCloseCreditIndex(unit);
+					if (ci > -1) {
+						$creditDrops.splice(ci, 1);
+						$creditDrops = $creditDrops;
+						$game.credits += 5;
 					}
 				}
 			} else if (unit.state === 'idle') {
@@ -438,15 +460,28 @@
 		{/each}
 		<T.MeshStandardMaterial />
 	</InstancedMesh>
-
-	<T.Mesh
-		name="attack point"
-		rotation.x={-1.57}
-		scale={0.3}
-		position.x={attackPoint.x}
-		position.z={attackPoint.z}
-	>
-		<T.RingGeometry args={[0.8, 1, 24, 1]} />
-		<T.MeshStandardMaterial color="red" transparent opacity={attackPointOpacity} />
-	</T.Mesh>
 {/await}
+
+<T.Mesh
+	name="attack point"
+	rotation.x={-1.57}
+	scale={0.3}
+	position.x={attackPoint.x}
+	position.z={attackPoint.z}
+>
+	<T.RingGeometry args={[0.8, 1, 24, 1]} />
+	<T.MeshStandardMaterial color="red" transparent opacity={attackPointOpacity} />
+</T.Mesh>
+
+<InstancedMesh name="credit drops" frustumCulled={false}>
+	{#each $creditDrops as credits, i (credits.id)}
+		<Instance
+			rotation.x={time}
+			scale={0.2}
+			position={[credits.currentPosition.x, 0.3, credits.currentPosition.z]}
+			color={'yellow'}
+		/>
+	{/each}
+	<T.IcosahedronGeometry />
+	<T.MeshStandardMaterial />
+</InstancedMesh>

@@ -24,6 +24,12 @@ export type Unit = {
 	notYetPlaced?: boolean;
 };
 
+export type CreditDrop = {
+	id: string;
+	creditAmount: number;
+	currentPosition: Vector3;
+};
+
 export type SelectedUnits = { units: Unit[]; mouseBtn: number };
 
 export type Point = { x: number; z: number };

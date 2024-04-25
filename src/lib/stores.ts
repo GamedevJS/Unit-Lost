@@ -1,5 +1,5 @@
 import { writable, derived, type Writable, type Readable } from 'svelte/store';
-import type { Unit, SelectedUnits } from '$lib/types';
+import type { Unit, SelectedUnits, CreditDrop } from '$lib/types';
 
 export const game = writable({
 	dev: false,
@@ -40,7 +40,10 @@ export const dragBox = writable({
 });
 
 export const units: Writable<Unit[]> = writable([]);
+
 export const selectedUnits: Writable<SelectedUnits> = writable({
 	units: [],
 	mouseBtn: 0
 });
+
+export const creditDrops: Writable<CreditDrop[]> = writable([]);
