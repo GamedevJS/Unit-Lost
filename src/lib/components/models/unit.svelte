@@ -22,9 +22,7 @@ Command: npx @threlte/gltf@2.0.3 D:\Node\svelte-craft\static\models\unit.glb --r
       Citidel: THREE.Mesh
       SupplyDepot: THREE.Mesh
     }
-    materials: {
-      Material: THREE.MeshStandardMaterial
-    }
+    materials: {}
   }
 
   const gltf = useGltf<GLTFResult>('/models/unit-transformed.glb', { useDraco: true })
@@ -36,7 +34,7 @@ Command: npx @threlte/gltf@2.0.3 D:\Node\svelte-craft\static\models\unit.glb --r
   {#await gltf}
     <slot name="fallback" />
   {:then gltf}
-    <T.Mesh geometry={gltf.nodes.Unit.geometry} material={gltf.materials.Material} position={[0, 1.43, 0]} />
+    <T.Mesh geometry={gltf.nodes.Unit.geometry} material={gltf.nodes.Unit.material} position={[0, 1.43, 0]} />
     <T.Mesh geometry={gltf.nodes.PowerPlant.geometry} material={gltf.nodes.PowerPlant.material} />
     <T.Mesh geometry={gltf.nodes.Citidel.geometry} material={gltf.nodes.Citidel.material} />
     <T.Mesh geometry={gltf.nodes.SupplyDepot.geometry} material={gltf.nodes.SupplyDepot.material} />

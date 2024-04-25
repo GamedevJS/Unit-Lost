@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { T, useTask } from '@threlte/core';
-	import { InstancedMesh, Instance, useInstancedSprite, useGltf } from '@threlte/extras';
+	import { InstancedMesh, Instance, useGltf, useTexture } from '@threlte/extras';
 	import { creditDrops, cursorGroundPosition, game, selectedUnits, units } from '$lib/stores';
-	import { Vector3, InstancedMesh as InstancedMeshType, Matrix4 } from 'three';
+	import { Vector3, InstancedMesh as InstancedMeshType, Matrix4, SRGBColorSpace } from 'three';
 	import { generateGrid, isPointInSquareRadius } from '$lib/utils';
 	import type { Unit, SelectedUnits } from '$lib/types';
 
@@ -20,6 +20,7 @@
 	const upVector = new Vector3(0, 1, 0);
 
 	const gltf = useGltf('/models/unit-transformed.glb', { useDraco: true });
+	const atlas = useTexture('atlas.png');
 
 	const moveVelocity = (start: Vector3, end: Vector3, speed: number) => {
 		displacement.subVectors(end, start);
@@ -181,20 +182,20 @@
 	const setStateIdle = (unit: Unit) => {
 		unit.state = 'idle';
 		unit.targetId = '';
-		unit.color = 'white';
+		//unit.color = 'white';
 		return unit;
 	};
 
 	const setStateAttacking = (unit: Unit, targetId: string) => {
 		unit.state = 'attacking';
-		unit.color = 'orange';
+		//unit.color = 'orange';
 		unit.targetId = targetId;
 		return unit;
 	};
 
 	const setStateMoving = (unit: Unit, targetId = '', moveTo?: Vector3) => {
 		unit.state = 'moving';
-		unit.color = 'blue';
+		//unit.color = 'blue';
 		if (moveTo) unit.moveTo = moveTo;
 		if (unit.rotateDestination) {
 			rotationMatrix.lookAt(unit.currentPosition, unit.moveTo, upVector);
@@ -298,7 +299,7 @@
 						unit.quaternion.rotateTowards(unit.rotateDestination, delta * 10);
 						unit.euler.setFromQuaternion(unit.quaternion);
 					}
-					unit.color = 'blue';
+					//unit.color = 'blue';
 					if (distance < 0.1) {
 						if (enemyInFiringRange) {
 							unit = setStateAttacking(unit, enemyInFiringRange.id);
@@ -345,7 +346,7 @@
 					// follow target
 					if (unit.targetId && unit.hold == false) {
 						unit = setStateMoving(unit, unit.targetId);
-						unit.color = 'green';
+						//unit.color = 'green';
 					} else {
 						unit = setStateIdle(unit);
 					}
@@ -355,6 +356,12 @@
 			unit.visible = false;
 			if (savedFoundEnemies.find((u) => u.id === unit.id)) {
 				unit.visible = true;
+			}
+
+			if (unit.typeId === 1 && unit.factionId === 0) {
+				unit.color = '#dd8e41';
+			} else if (unit.typeId === 1 && unit.factionId === 1) {
+				unit.color = '#c72e6b';
 			}
 		});
 		if (arrayUpdated) {
@@ -367,99 +374,109 @@
 </script>
 
 {#await gltf then gltf}
-	<InstancedMesh name="units" bind:ref={unitsMesh} geometry={gltf.nodes.Unit.geometry}>
-		{#each $units as unit (unit.id)}
-			{#if (unit.factionId === 0 || unit.visible) && !unit.isBuilding}
-				<Instance
-					scale={0.2}
-					position={[unit.currentPosition.x, 0.25, unit.currentPosition.z]}
-					color={unit.color}
-					rotation.x={unit.euler.x}
-					rotation.y={unit.euler.y}
-					rotation.z={unit.euler.z}
-				/>
-			{/if}
-		{/each}
-		<T.MeshStandardMaterial color="#FFFFFF" />
-	</InstancedMesh>
+	{#await atlas then atlas}
+		<InstancedMesh name="units" bind:ref={unitsMesh} geometry={gltf.nodes.Unit.geometry}>
+			{#each $units as unit (unit.id)}
+				{#if (unit.factionId === 0 || unit.visible) && !unit.isBuilding}
+					<Instance
+						scale={0.2}
+						position={[unit.currentPosition.x, 0.25, unit.currentPosition.z]}
+						color={unit.color}
+						rotation.x={unit.euler.x}
+						rotation.y={unit.euler.y}
+						rotation.z={unit.euler.z}
+					/>
+				{/if}
+			{/each}
+			<T.MeshStandardMaterial>
+				<T is={atlas} attach="map" flipY={false} colorSpace={SRGBColorSpace} />
+			</T.MeshStandardMaterial>
+		</InstancedMesh>
 
-	<InstancedMesh name="selection rings" frustumCulled={false}>
-		{#each $units as unit, i (unit.id)}
-			<Instance
-				rotation.x={-1.57}
-				scale={unit.selected ? (unit.isBuilding ? (unit.typeId === 101 ? 1.5 : 1.0) : 0.3) : 0}
-				position={[unit.currentPosition.x, 0, unit.currentPosition.z]}
-			/>
-		{/each}
-		<T.RingGeometry args={[0.9, 1, 24, 1]} />
-		<T.MeshStandardMaterial />
-	</InstancedMesh>
-
-	<InstancedMesh name="health bars" frustumCulled={false}>
-		{#each $units as unit, i (unit.id)}
-			{#if (unit.factionId === 0 || unit.visible) && unit.health < unit.maxHealth}
+		<InstancedMesh name="selection rings" frustumCulled={false}>
+			{#each $units as unit, i (unit.id)}
 				<Instance
 					rotation.x={-1.57}
-					rotation.z={-0.78}
-					scale.y={unit.isBuilding
-						? (unit.health / unit.maxHealth) * 2
-						: unit.health / unit.maxHealth}
-					position={[unit.currentPosition.x, unit.isBuilding ? 2.0 : 0.8, unit.currentPosition.z]}
-					color={unit.health > 0.5 ? 'green' : 'red'}
-				/>
-			{/if}
-		{/each}
-		<T.PlaneGeometry args={[0.06, 0.4]} />
-		<T.MeshStandardMaterial />
-	</InstancedMesh>
-
-	<InstancedMesh name="citidel" frustumCulled={false} geometry={gltf.nodes.Citidel.geometry}>
-		{#each $units as unit, i (unit.id)}
-			{#if (unit.factionId === 0 || unit.visible) && unit.typeId === 101}
-				<Instance
+					scale={unit.selected ? (unit.isBuilding ? (unit.typeId === 101 ? 1.5 : 1.0) : 0.3) : 0}
 					position={[unit.currentPosition.x, 0, unit.currentPosition.z]}
-					color={unit.color}
-					scale={[1, 1, 1]}
-					rotation.y={1.57}
 				/>
-			{/if}
-		{/each}
-		<T.MeshStandardMaterial />
-	</InstancedMesh>
+			{/each}
+			<T.RingGeometry args={[0.9, 1, 24, 1]} />
+			<T.MeshStandardMaterial />
+		</InstancedMesh>
 
-	<InstancedMesh
-		name="power station"
-		frustumCulled={false}
-		geometry={gltf.nodes.PowerPlant.geometry}
-	>
-		{#each $units as unit, i (unit.id)}
-			{#if (unit.factionId === 0 || unit.visible) && unit.typeId === 102}
-				<Instance
-					scale={0.5}
-					position={[unit.currentPosition.x, 0, unit.currentPosition.z]}
-					color={unit.color}
-				/>
-			{/if}
-		{/each}
-		<T.MeshStandardMaterial />
-	</InstancedMesh>
+		<InstancedMesh name="health bars" frustumCulled={false}>
+			{#each $units as unit, i (unit.id)}
+				{#if (unit.factionId === 0 || unit.visible) && unit.health < unit.maxHealth}
+					<Instance
+						rotation.x={-1.57}
+						rotation.z={-0.78}
+						scale.y={unit.isBuilding
+							? (unit.health / unit.maxHealth) * 2
+							: unit.health / unit.maxHealth}
+						position={[unit.currentPosition.x, unit.isBuilding ? 2.0 : 0.8, unit.currentPosition.z]}
+						color={unit.health > 0.5 ? 'green' : 'red'}
+					/>
+				{/if}
+			{/each}
+			<T.PlaneGeometry args={[0.06, 0.4]} />
+			<T.MeshStandardMaterial />
+		</InstancedMesh>
 
-	<InstancedMesh
-		name="supply depot"
-		frustumCulled={false}
-		geometry={gltf.nodes.SupplyDepot.geometry}
-	>
-		{#each $units as unit, i (unit.id)}
-			{#if (unit.factionId === 0 || unit.visible) && unit.typeId === 103}
-				<Instance
-					position={[unit.currentPosition.x, 0, unit.currentPosition.z]}
-					color={unit.color}
-					scale={0.5}
-				/>
-			{/if}
-		{/each}
-		<T.MeshStandardMaterial />
-	</InstancedMesh>
+		<InstancedMesh name="citidel" frustumCulled={false} geometry={gltf.nodes.Citidel.geometry}>
+			{#each $units as unit, i (unit.id)}
+				{#if (unit.factionId === 0 || unit.visible) && unit.typeId === 101}
+					<Instance
+						position={[unit.currentPosition.x, 0, unit.currentPosition.z]}
+						color={unit.color}
+						scale={[1, 1, 1]}
+						rotation.y={1.57}
+					/>
+				{/if}
+			{/each}
+			<T.MeshStandardMaterial>
+				<T is={atlas} attach="map" flipY={false} colorSpace={SRGBColorSpace} />
+			</T.MeshStandardMaterial>
+		</InstancedMesh>
+
+		<InstancedMesh
+			name="power station"
+			frustumCulled={false}
+			geometry={gltf.nodes.PowerPlant.geometry}
+		>
+			{#each $units as unit, i (unit.id)}
+				{#if (unit.factionId === 0 || unit.visible) && unit.typeId === 102}
+					<Instance
+						scale={0.5}
+						position={[unit.currentPosition.x, 0, unit.currentPosition.z]}
+						color={unit.color}
+					/>
+				{/if}
+			{/each}
+			<T.MeshStandardMaterial>
+				<T is={atlas} attach="map" flipY={false} colorSpace={SRGBColorSpace} />
+			</T.MeshStandardMaterial>
+		</InstancedMesh>
+
+		<InstancedMesh
+			name="supply depot"
+			frustumCulled={false}
+			geometry={gltf.nodes.SupplyDepot.geometry}
+		>
+			{#each $units as unit, i (unit.id)}
+				{#if (unit.factionId === 0 || unit.visible) && unit.typeId === 103}
+					<Instance
+						position={[unit.currentPosition.x, 0, unit.currentPosition.z]}
+						color={unit.color}
+						scale={0.5}
+					/>
+				{/if}
+			{/each}
+			<T.MeshStandardMaterial>
+				<T is={atlas} attach="map" flipY={false} colorSpace={SRGBColorSpace} />
+			</T.MeshStandardMaterial>
+		</InstancedMesh>
+	{/await}
 {/await}
 
 <T.Mesh

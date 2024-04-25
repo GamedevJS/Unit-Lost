@@ -82,7 +82,7 @@
 		let middleOfMap = new Vector3();
 		let upVector = new Vector3(0, 1, 0);
 		for (let i = 0; i < 4; i++) {
-			startingPosition.set(Math.random() * 50 - 25, 0, Math.random() * 50 - 25);
+			startingPosition.set(Math.random() * 50 - 25, 0.25, Math.random() * 50 - 25);
 			rotationMatrix.lookAt(startingPosition, middleOfMap, upVector);
 			rotateDestination.setFromRotationMatrix(rotationMatrix);
 			$units.push({
@@ -107,6 +107,14 @@
 				isBuilding: false
 			});
 		}
+		$creditDrops = [];
+		for (let i = 0; i < 3; i++) {
+			$creditDrops.push({
+				id: generateId(),
+				creditAmount: 10,
+				currentPosition: new Vector3(Math.random() * 50 - 25, 0, Math.random() * 50 - 25)
+			});
+		}
 	};
 
 	// starting citidel
@@ -119,7 +127,7 @@
 		moveTo: new Vector3(),
 		quaternion: new Quaternion(),
 		euler: new Euler(),
-		currentPosition: new Vector3(0.5, 0, 0.5),
+		currentPosition: new Vector3(0.5, 0.25, 0.5),
 		state: 'idle',
 		color: 'white',
 		hold: false,
@@ -142,7 +150,7 @@
 		moveTo: new Vector3(),
 		quaternion: new Quaternion(),
 		euler: new Euler(),
-		currentPosition: new Vector3(-1.5, 0, -0.5),
+		currentPosition: new Vector3(-1.5, 0.25, -0.5),
 		state: 'idle',
 		color: 'white',
 		hold: false,
@@ -153,14 +161,6 @@
 		distance: 0,
 		isBuilding: true
 	});
-
-	for (let i = 0; i < 3; i++) {
-		$creditDrops.push({
-			id: generateId(),
-			creditAmount: 10,
-			currentPosition: new Vector3(Math.random() * 50 - 25, 0, Math.random() * 50 - 25)
-		});
-	}
 
 	const displacement = new Vector3();
 	let distance = 0;
