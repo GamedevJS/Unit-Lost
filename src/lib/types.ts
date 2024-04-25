@@ -14,6 +14,7 @@ export type Unit = {
 	state: 'idle' | 'moving' | 'attacking' | 'following';
 	color: string;
 	hold: boolean;
+	attackMove: boolean;
 	health: number;
 	maxHealth: number;
 	visible: boolean;

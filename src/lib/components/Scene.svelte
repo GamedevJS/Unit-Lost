@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { T, useTask, useThrelte } from '@threlte/core';
 	import { Grid, interactivity, useFBO, useTexture } from '@threlte/extras';
-	import { Mesh, Vector3, Raycaster, Vector2, Quaternion, Euler } from 'three';
+	import { Mesh, Vector3, Raycaster, Vector2, Quaternion, Euler, Matrix4 } from 'three';
 	import {
 		gameTime,
 		dragBox,
@@ -21,6 +21,7 @@
 	import Camera from './Camera.svelte';
 	import SplatMaterial from '$lib/components/materials/splat/SplatMaterial.svelte';
 	import MiniMap from './MiniMap.svelte';
+	import { interval } from '$lib/animation';
 
 	interactivity();
 
@@ -42,7 +43,7 @@
 	const raycaster = new Raycaster();
 	let groundSelectionPoints: Point[] = [];
 
-	let row = -10;
+	/* 	let row = -10;
 	let col = -10;
 	let unitCount = 50;
 	for (let i = 0; i < unitCount; i++) {
@@ -71,35 +72,41 @@
 			distance: 0,
 			isBuilding: false
 		});
-	}
-	col = 5;
-	for (let i = 0; i < unitCount; i++) {
-		row++;
-		if (row > 10) {
-			row = -10;
-			col++;
+	} */
+
+	const startWave = () => {
+		let rotationMatrix = new Matrix4();
+		let rotateDestination = new Quaternion();
+		let startingPosition = new Vector3();
+		let middleOfMap = new Vector3();
+		let upVector = new Vector3(0, 1, 0);
+		for (let i = 0; i < 4; i++) {
+			startingPosition.set(Math.random() * 50 - 25, 0, Math.random() * 50 - 25);
+			rotationMatrix.lookAt(startingPosition, middleOfMap, upVector);
+			rotateDestination.setFromRotationMatrix(rotationMatrix);
+			$units.push({
+				id: generateId(),
+				typeId: 1,
+				targetId: '',
+				factionId: 1,
+				selected: false,
+				moveTo: middleOfMap.clone(),
+				quaternion: new Quaternion(),
+				euler: new Euler(),
+				rotateDestination: rotateDestination.clone(),
+				currentPosition: startingPosition.clone(),
+				state: 'moving',
+				color: 'white',
+				hold: false,
+				attackMove: true,
+				health: 10,
+				maxHealth: 10,
+				visible: false,
+				distance: 0,
+				isBuilding: false
+			});
 		}
-		$units.push({
-			id: generateId(),
-			typeId: 1,
-			targetId: '',
-			factionId: 1,
-			selected: false,
-			moveTo: new Vector3(row, 0.25, col),
-			quaternion: new Quaternion(),
-			euler: new Euler(),
-			rotateDestination: new Quaternion(),
-			currentPosition: new Vector3(row, 0.25, col),
-			state: 'idle',
-			color: 'white',
-			hold: false,
-			health: 10,
-			maxHealth: 10,
-			visible: false,
-			distance: 0,
-			isBuilding: false
-		});
-	}
+	};
 
 	// starting citidel
 	$units.push({
@@ -115,6 +122,7 @@
 		state: 'idle',
 		color: 'white',
 		hold: false,
+		attackMove: false,
 		health: 100,
 		maxHealth: 100,
 		visible: false,
@@ -137,6 +145,7 @@
 		state: 'idle',
 		color: 'white',
 		hold: false,
+		attackMove: false,
 		health: 10,
 		maxHealth: 10,
 		visible: false,
@@ -213,10 +222,16 @@
 		$selectedUnits = { units: sUnits, mouseBtn: 0 };
 	};
 
+	const every10seconds = interval(20);
+
 	useTask((delta) => {
 		movePointOpacity -= delta * 2;
 		time += delta;
 		$gameTime = time * 1000;
+
+		every10seconds(delta, () => {
+			startWave();
+		});
 	});
 
 	onDestroy(() => {
@@ -245,7 +260,8 @@
 	</T.Mesh>
 {/each} -->
 
-<!-- <Grid
+<Grid
+	visible={$game.placingBuilding}
 	gridSize={[50, 50]}
 	cellColor={'#46536b'}
 	sectionColor="#ffffff"
@@ -253,7 +269,7 @@
 	fadeDistance={50}
 	position.y={0}
 />
- -->
+
 <Units {moveTarget} />
 
 <T.Mesh

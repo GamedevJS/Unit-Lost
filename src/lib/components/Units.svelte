@@ -208,7 +208,7 @@
 			}
 			// is enemy nearby?
 			foundEnemies = findCloseEnemies(unit);
-			enemyInFiringRange = foundEnemies.find((u) => u.distance < 3);
+			enemyInFiringRange = foundEnemies.find((u) => u.distance < 2.5);
 
 			if (unit.health < 0.01) {
 				arrayUpdated = true;
@@ -247,12 +247,19 @@
 
 			if (unit.state === 'moving') {
 				arrayUpdated = true;
-				if (unit.targetId) {
+				if (unit.attackMove && enemyInFiringRange) {
+					unit = setStateAttacking(unit, enemyInFiringRange.id);
+				} else if (unit.targetId) {
 					// folowing a target
 					({ target } = findTarget(unit.targetId));
 					if (!target) {
 						// target is dead
-						unit = setStateIdle(unit);
+						if (unit.attackMove) {
+							unit = setStateMoving(unit, '', unit.moveTo);
+						} else {
+							unit = setStateIdle(unit);
+						}
+
 						return;
 					}
 					displacement.subVectors(target.currentPosition, unit.currentPosition);
@@ -296,7 +303,11 @@
 				({ target, targetIndex } = findTarget(unit.targetId));
 				if (!target) {
 					// target is dead
-					unit = setStateIdle(unit);
+					if (unit.attackMove) {
+						unit = setStateMoving(unit, '', unit.moveTo);
+					} else {
+						unit = setStateIdle(unit);
+					}
 					return;
 				}
 				$units[targetIndex].health -= delta;
@@ -371,7 +382,7 @@
 					scale.y={unit.isBuilding
 						? (unit.health / unit.maxHealth) * 2
 						: unit.health / unit.maxHealth}
-					position={[unit.currentPosition.x, unit.isBuilding ? 2.0 : 0.6, unit.currentPosition.z]}
+					position={[unit.currentPosition.x, unit.isBuilding ? 2.0 : 0.8, unit.currentPosition.z]}
 					color={unit.health > 0.5 ? 'green' : 'red'}
 				/>
 			{/if}
