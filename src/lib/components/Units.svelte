@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { T, useTask } from '@threlte/core';
 	import { InstancedMesh, Instance, useGltf, useTexture } from '@threlte/extras';
-	import { creditDrops, cursorGroundPosition, game, selectedUnits, units } from '$lib/stores';
+	import {
+		creditDrops,
+		cursorGroundPosition,
+		game,
+		selectedUnits,
+		units,
+		unplacedBuildingPosition
+	} from '$lib/stores';
 	import { Vector3, InstancedMesh as InstancedMeshType, Matrix4, SRGBColorSpace } from 'three';
 	import { generateGrid, isPointInSquareRadius } from '$lib/utils';
 	import type { Unit, SelectedUnits } from '$lib/types';
@@ -209,7 +216,6 @@
 	let allFoundEnemies: Unit[] = [];
 	let savedFoundEnemies: Unit[] = [];
 	let enemyInFiringRange: Unit | undefined;
-	let foundCredits: Unit[] = [];
 	let target: Unit | undefined;
 	let targetIndex: number | undefined;
 	useTask((delta) => {
@@ -249,6 +255,11 @@
 					0,
 					Math.round($cursorGroundPosition.z) + 0.5
 				);
+				$unplacedBuildingPosition = {
+					x: Math.round($cursorGroundPosition.x) + 0.5,
+					z: Math.round($cursorGroundPosition.z) + 0.5,
+					typeId: unit.typeId
+				};
 			}
 
 			if (unit.isBuilding) {
@@ -397,7 +408,7 @@
 			{#each $units as unit, i (unit.id)}
 				<Instance
 					rotation.x={-1.57}
-					scale={unit.selected ? (unit.isBuilding ? (unit.typeId === 101 ? 1.5 : 1.0) : 0.3) : 0}
+					scale={unit.selected && !unit.isBuilding ? 0.3 : 0}
 					position={[unit.currentPosition.x, 0, unit.currentPosition.z]}
 				/>
 			{/each}

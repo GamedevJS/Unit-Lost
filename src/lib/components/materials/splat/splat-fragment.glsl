@@ -82,35 +82,38 @@ void main() {
     vec2 center = vUv / 0.2;
     center = (1.0 - scale) * (vUv - 0.5) + 0.5;
 
-    // smooth out texture
-    vec2 smooth_uv = repeat * vUv;
-    vec4 duv = vec4(dFdx(smooth_uv), dFdy(smooth_uv));
-    vec4 texture0 = textureGrad(textures[0], uv, duv.xy, duv.zw);
-    vec4 texture1 = textureGrad(textures[1], uv, duv.xy, duv.zw);
-    vec4 texture2 = textureGrad(textures[2], uv, duv.xy, duv.zw);
-    vec4 texture3 = textureGrad(textures[3], uv, duv.xy, duv.zw);
-
-    // texture
-    vec4 tex1 = (smoothstep(0.00, 1.00, blendMap.r)) * texture1;
-    vec4 tex2 = (smoothstep(0.00, 1.00, blendMap.g)) * texture2;
-    vec4 tex3 = (smoothstep(0.00, 1.00, blendMap.b)) * texture3;
-
-    vec4 finalOutput = vec4(mix(texture0.rgb, tex1.rgb, tex1.a), 1.0);
-    finalOutput = vec4(mix(finalOutput.rgb, tex2.rgb, tex2.a), 1.0);
-    finalOutput = vec4(mix(finalOutput.rgb, tex3.rgb, tex3.a), 1.0);
+    //if(useColors == 1.0) {
+    vec4 color1 = vec4(colors[0], colors[1], colors[2], 1.0);
+    vec4 color2 = vec4(colors[3], colors[4], colors[5], 1.0);
+    vec4 color3 = vec4(colors[6], colors[7], colors[8], 1.0);
 
     // noise 
-    float f = snoise(vec3(noiseScale * vUv, noiseOffset));
+    float f = snoise(vec3(noiseScale * vUv, 1.0));
     f = 1.5 + 0.3 * f;
 
     float clampAmount = 0.49;
-    canvasTexture.r = clampNoise(f * canvasTexture.r, clampAmount, blurAmount);
+    blendMap.r = clampNoise(f * blendMap.r, clampAmount, blurAmount);
+    blendMap.g = clampNoise(f * blendMap.g, clampAmount, blurAmount);
+    blendMap.b = clampNoise(f * blendMap.b, clampAmount, blurAmount);
+
+    vec4 ntex = color1;
+    vec4 ntex2 = (smoothstep(0.00, 1.00, blendMap.g)) * color2;
+    vec4 ntex3 = (smoothstep(0.00, 1.00, blendMap.b)) * color3;
+
+    vec4 finalOutput = mix(ntex, ntex2, ntex2.a);
+    finalOutput = mix(finalOutput, ntex3, ntex3.a);
+
+    // noise 
+    float fo = snoise(vec3(noiseScale * vUv, noiseOffset));
+    fo = 1.5 + 0.3 * fo;
+
+    canvasTexture.r = clampNoise(fo * canvasTexture.r, clampAmount, blurAmount);
 
     float clampedRed = clamp(canvasTexture.r + opacity, 0.0, 1.0);
 
-    gl_FragColor = vec4(finalOutput.r, finalOutput.g, finalOutput.b, finalOutput.a * clampedRed);
    // gl_FragColor = vec4(finalOutput.r, finalOutput.g, finalOutput.b, finalOutput.a);
+    gl_FragColor = vec4(finalOutput.r, finalOutput.g, finalOutput.b, finalOutput.a * clampedRed);
 
     #include <tonemapping_fragment>
-    #include <colorspace_fragment> 
+    //#include <colorspace_fragment> 
 }

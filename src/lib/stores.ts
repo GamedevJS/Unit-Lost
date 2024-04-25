@@ -33,6 +33,12 @@ export const cursorGroundPosition = writable({
 	z: 0
 });
 
+export const unplacedBuildingPosition = writable({
+	x: 0,
+	z: 0,
+	typeId: 0
+});
+
 export const dragBox = writable({
 	x: 0,
 	y: 0,

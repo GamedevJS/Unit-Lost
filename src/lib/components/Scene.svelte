@@ -10,7 +10,8 @@
 		selectedUnits,
 		game,
 		cursorGroundPosition,
-		creditDrops
+		creditDrops,
+		unplacedBuildingPosition
 	} from '$lib/stores';
 	import { generateId, isPointInside, findClosestUnit, isPointInSquareRadius } from '$lib/utils';
 	import type { Point, Unit } from '$lib/types';
@@ -43,37 +44,32 @@
 	let selectPoint = new Vector3();
 	const raycaster = new Raycaster();
 	let groundSelectionPoints: Point[] = [];
+	let gridPosition = new Vector3();
+	let gridVisible = false;
+	let gridType: 'grid' | 'circular' = 'grid';
+	let gridWhite = false;
+	let gridRadius = 1;
 
-	/* 	let row = -10;
-	let col = -10;
-	let unitCount = 50;
-	for (let i = 0; i < unitCount; i++) {
-		row++;
-		if (row > 10) {
-			row = -10;
-			col++;
+	const setGridPosition = (su: any, upbp: any, pb: any) => {
+		gridVisible = false;
+		if (!pb && su.units[0] && su.units[0].isBuilding) {
+			gridType = 'circular';
+			gridPosition.set(su.units[0].currentPosition.x, 0, su.units[0].currentPosition.z);
+			gridPosition = gridPosition;
+			gridVisible = true;
+			gridWhite = !(su.units[0].typeId === 102);
+			gridRadius = su.units[0].typeId === 101 ? 2 : 1;
 		}
-		$units.push({
-			id: generateId(),
-			typeId: 1,
-			factionId: 0,
-			targetId: '',
-			selected: false,
-			moveTo: new Vector3(row, 0.25, col),
-			currentPosition: new Vector3(row, 0.25, col),
-			euler: new Euler(),
-			quaternion: new Quaternion(),
-			rotateDestination: new Quaternion(),
-			state: 'idle',
-			color: 'white',
-			hold: false,
-			health: 10,
-			maxHealth: 10,
-			visible: false,
-			distance: 0,
-			isBuilding: false
-		});
-	} */
+		if (pb && upbp) {
+			gridType = upbp.typeId === 102 ? 'circular' : 'grid';
+			gridPosition.set(upbp.x, 0, upbp.z);
+			gridPosition = gridPosition;
+			gridVisible = true;
+			gridWhite = false;
+		}
+	};
+
+	$: setGridPosition($selectedUnits, $unplacedBuildingPosition, $game.placingBuilding);
 
 	const startWave = () => {
 		let rotationMatrix = new Matrix4();
@@ -269,14 +265,20 @@
 	</T.Mesh>
 {/each} -->
 
+<!-- visible={$game.placingBuilding} -->
 <Grid
-	visible={$game.placingBuilding}
-	gridSize={[50, 50]}
-	cellColor={'#46536b'}
-	sectionColor="#ffffff"
-	sectionThickness={0}
-	fadeDistance={50}
+	type={gridType}
+	visible={gridVisible}
+	gridSize={gridType === 'grid' ? [2, 2] : [8, 8]}
+	maxRadius={gridWhite ? gridRadius : 3}
+	sectionSize={gridType === 'grid' ? 0 : gridWhite ? gridRadius : 3}
+	cellColor={'#4d6ca6'}
+	cellSize={1}
+	sectionColor={gridWhite ? '#ffffff' : '#025afb'}
+	sectionThickness={3}
+	position.x={gridPosition.x}
 	position.y={0}
+	position.z={gridPosition.z}
 />
 
 <Units {moveTarget} />
@@ -335,7 +337,7 @@
 	}}
 >
 	<T.BoxGeometry />
-	{#await blendImage then blendImage}
+	<!-- 	{#await blendImage then blendImage}
 		<SplatMaterial
 			images={{
 				image0: 'dirt.png',
@@ -343,6 +345,21 @@
 				image2: 'cracks.png',
 				image3: 'dirtDark.png'
 			}}
+			repeat={18}
+			{blendImage}
+			{canvasTexture}
+			noiseOffset={time / 5}
+			opacity={0.2}
+		/> 
+		
+	{/await} -->
+	{#await blendImage then blendImage}
+		<SplatMaterial
+			colors={[
+				[0.051, 0.055, 0.09],
+				[0.059, 0.071, 0.11],
+				[0.071, 0.078, 0.129]
+			]}
 			repeat={18}
 			{blendImage}
 			{canvasTexture}
