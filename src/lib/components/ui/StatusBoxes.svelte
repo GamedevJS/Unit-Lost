@@ -97,6 +97,27 @@
 	}
 </script>
 
+{#if $game.showWelcomeMessage}
+	<div class="welcomeMessage">
+		<h3>Welcome to Unit Lost!</h3>
+		<p>Defend your base from waves of enemy robots!</p>
+		<p class="withImage" style="background-image:url('intro1.png')">
+			Left mouse to select objects. Right mouse to move/attack.
+		</p>
+		<p class="withImage" style="background-image:url('intro4.png')">
+			There is a new wave every minute.
+		</p>
+		<p class="withImage" style="background-image:url('intro2.png')">
+			Robots flash red when attacking.
+		</p>
+		<p class="withImage" style="background-image:url('intro3.png')">
+			Collect credits from around the map.
+		</p>
+		<p>It's game over when your citidel is destroyed.</p>
+		<button on:click={() => ($game.showWelcomeMessage = false)}>Dismiss</button>
+	</div>
+{/if}
+
 {#if showMessage}
 	<div class="message">
 		<p>{$message}</p>
@@ -236,6 +257,32 @@
 
 	.message > p {
 		margin: 20px;
+	}
+
+	.welcomeMessage {
+		position: absolute;
+		top: 100px;
+		left: 0;
+		right: 0;
+		width: 500px;
+		text-align: left;
+		margin: 0px auto;
+		background-color: #0a0a0a;
+		border: 1px solid #1b1b1b;
+		color: white;
+		padding: 20px;
+	}
+
+	.welcomeMessage > p {
+		margin: 30px 0;
+	}
+
+	p.withImage {
+		margin: 20px 0;
+		height: 80px;
+		background-repeat: no-repeat;
+		background-size: 80px;
+		padding-left: 120px;
 	}
 
 	#gameOver {

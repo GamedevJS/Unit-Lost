@@ -8,7 +8,8 @@ export const game = writable({
 	credits: 50,
 	supply: 3,
 	unitCount: 0,
-	gameOver: false
+	gameOver: false,
+	showWelcomeMessage: true
 });
 
 export const message = writable('');
