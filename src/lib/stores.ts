@@ -7,7 +7,8 @@ export const game = writable({
 	placingBuilding: false,
 	credits: 50,
 	supply: 3,
-	unitCount: 0
+	unitCount: 0,
+	gameOver: false
 });
 
 export const message = writable('');

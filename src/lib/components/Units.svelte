@@ -7,7 +7,8 @@
 		game,
 		selectedUnits,
 		units,
-		unplacedBuildingPosition
+		unplacedBuildingPosition,
+		message
 	} from '$lib/stores';
 	import { Vector3, InstancedMesh as InstancedMeshType, Matrix4, SRGBColorSpace } from 'three';
 	import { generateGrid, isPointInSquareRadius } from '$lib/utils';
@@ -134,7 +135,9 @@
 					buildingClash = true;
 				}
 			});
-			if (!buildingClash) {
+			if (buildingClash) {
+				$message = 'Building Obstructed';
+			} else {
 				$units[buildingToPlace].notYetPlaced = false;
 				$game.placingBuilding = false;
 				updateBuildingPower();
@@ -242,6 +245,7 @@
 				if (unit.isBuilding) {
 					updateBuildingPower();
 					updateSupplyCount();
+					if (unit.typeId === 101) $game.gameOver = true;
 				} else if (unit.factionId === 0) {
 					$game.unitCount--;
 				}
@@ -322,9 +326,9 @@
 				if (unit.factionId === 0) {
 					let ci = findCloseCreditIndex(unit);
 					if (ci > -1) {
+						$game.credits += $creditDrops[ci].creditAmount;
 						$creditDrops.splice(ci, 1);
 						$creditDrops = $creditDrops;
-						$game.credits += 5;
 					}
 				}
 			} else if (unit.state === 'idle') {
@@ -426,7 +430,7 @@
 							? (unit.health / unit.maxHealth) * 2
 							: unit.health / unit.maxHealth}
 						position={[unit.currentPosition.x, unit.isBuilding ? 2.0 : 0.8, unit.currentPosition.z]}
-						color={unit.health > 0.5 ? 'green' : 'red'}
+						color={unit.health > unit.maxHealth / 3 ? 'green' : 'red'}
 					/>
 				{/if}
 			{/each}

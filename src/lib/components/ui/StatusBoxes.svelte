@@ -14,13 +14,16 @@
 		clearTimeout(timeout);
 		timeout = setTimeout(() => {
 			showMessage = false;
-		}, 4000);
+		}, 3000);
 	};
 
 	$: messageChanged($message);
 
 	const addNewBuilding = (typeId: number) => {
 		$selectedUnits.units = [];
+		if ($game.credits < data.units[typeId].cost) {
+			return;
+		}
 		$units.push({
 			id: generateId(),
 			typeId,
@@ -44,10 +47,14 @@
 		});
 		$units = $units;
 		$game.placingBuilding = true;
+		$game.credits -= data.units[typeId].cost;
 	};
 
 	const addNewUnit = (typeId: number) => {
 		if ($game.unitCount >= $game.supply) {
+			return;
+		}
+		if ($game.credits < data.units[typeId].cost) {
 			return;
 		}
 		$units.push({
@@ -73,12 +80,15 @@
 		});
 		$units = $units;
 		$game.unitCount++;
+		$game.credits -= data.units[typeId].cost;
 	};
 
 	const deleteBuilding = (id: string) => {
 		let buildingToDeleteIndex = $units.findIndex((u) => u.id === id);
 		$units[buildingToDeleteIndex].health = 0;
+		$game.credits += data.units[$units[buildingToDeleteIndex].typeId].cost;
 		$units = $units;
+		$selectedUnits.units = [];
 	};
 
 	$: {
@@ -88,8 +98,15 @@
 </script>
 
 {#if showMessage}
-	<div id="message">
+	<div class="message">
 		<p>{$message}</p>
+	</div>
+{/if}
+
+{#if $game.gameOver}
+	<div id="gameOver" class="message">
+		<h2>Game Over</h2>
+		<p>Your citidel was destroyed!</p>
 	</div>
 {/if}
 
@@ -149,7 +166,7 @@
 		color: white;
 	}
 
-	#message {
+	.message {
 		position: absolute;
 		top: 100px;
 		left: 0;
@@ -162,7 +179,11 @@
 		color: white;
 	}
 
-	#message > p {
+	.message > p {
 		margin: 20px;
+	}
+
+	#gameOver {
+		top: 300px;
 	}
 </style>

@@ -2,7 +2,7 @@ export const data: any = {
 	units: {
 		'1': {
 			name: 'robot',
-			cost: 10
+			cost: 0
 		},
 		'101': {
 			name: 'citidel',
@@ -10,11 +10,11 @@ export const data: any = {
 		},
 		'102': {
 			name: 'power plant',
-			cost: 100
+			cost: 20
 		},
 		'103': {
 			name: 'supply depot',
-			cost: 50
+			cost: 40
 		}
 	}
 };

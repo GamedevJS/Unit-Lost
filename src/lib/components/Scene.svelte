@@ -81,7 +81,7 @@
 		let startingPosition = new Vector3();
 		let middleOfMap = new Vector3();
 		let upVector = new Vector3(0, 1, 0);
-		for (let i = 0; i < 4; i++) {
+		for (let i = 0; i < waveCount + 2; i++) {
 			startingPosition.set(Math.random() * 50 - 25, 0.25, Math.random() * 50 - 25);
 			rotationMatrix.lookAt(startingPosition, middleOfMap, upVector);
 			rotateDestination.setFromRotationMatrix(rotationMatrix);
@@ -108,14 +108,20 @@
 			});
 		}
 		$creditDrops = [];
+		dropCredits();
+	};
+
+	const dropCredits = () => {
 		for (let i = 0; i < 3; i++) {
 			$creditDrops.push({
 				id: generateId(),
-				creditAmount: 10,
+				creditAmount: 20,
 				currentPosition: new Vector3(Math.random() * 50 - 25, 0, Math.random() * 50 - 25)
 			});
 		}
 	};
+
+	dropCredits();
 
 	// starting citidel
 	$units.push({
@@ -231,14 +237,14 @@
 		$selectedUnits = { units: sUnits, mouseBtn: 0 };
 	};
 
-	const every10seconds = interval(10);
+	const every60seconds = interval(60);
 
 	useTask((delta) => {
 		movePointOpacity -= delta * 2;
 		time += delta;
 		$gameTime = time * 1000;
 
-		every10seconds(delta, () => {
+		every60seconds(delta, () => {
 			startWave();
 		});
 	});
