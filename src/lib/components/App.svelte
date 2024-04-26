@@ -7,8 +7,9 @@
 	import DragBox from './ui/DragBox.svelte';
 	import StatusBoxes from './ui/StatusBoxes.svelte';
 	import { onMount } from 'svelte';
+	import { dev } from '$app/environment';
 
-	onMount(() => {
+	/* 	onMount(() => {
 		// @ts-ignore
 		window.addUnit = (factionId = 0) => {
 			let id = generateId();
@@ -58,7 +59,7 @@
 			$units = $units;
 			console.log('building added at: ', $cameraGroundPosition.x, $cameraGroundPosition.z);
 		};
-	});
+	}); */
 </script>
 
 <DragBox />
@@ -74,10 +75,10 @@
 
 <svelte:window
 	on:keypress={(e) => {
-		if (e.key === 'd') {
+		if (e.key === 'd' && dev) {
 			$game.dev = !$game.dev;
 		}
-		if (e.key === 'c') {
+		if (e.key === 'c' && dev) {
 			$game.useEdgeCamera = !$game.useEdgeCamera;
 		}
 	}}

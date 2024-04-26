@@ -370,7 +370,7 @@
 			}
 
 			if (unit.typeId === 1 && unit.factionId === 0) {
-				unit.color = '#dd8e41';
+				unit.color = '#ff7624';
 			} else if (unit.typeId === 1 && unit.factionId === 1) {
 				unit.color = '#c72e6b';
 			}

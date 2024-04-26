@@ -10,6 +10,8 @@ export const game = writable({
 	unitCount: 0
 });
 
+export const message = writable('');
+
 export const gameTime = writable(0);
 
 export const cameraPosition = writable({

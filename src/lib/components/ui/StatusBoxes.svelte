@@ -1,10 +1,23 @@
 <script lang="ts">
-	import { selectedUnits, units, game, gameTime } from '$lib/stores';
+	import { selectedUnits, units, game, gameTime, message } from '$lib/stores';
 	import { data } from '$lib/database';
 	import { generateId, isPointInSquareRadius } from '$lib/utils';
 	import { Vector3, Quaternion, Euler } from 'three';
 
 	let date = new Date();
+	let showMessage = false;
+	let timeout = 0;
+
+	const messageChanged = (m: string) => {
+		if (!m) return;
+		showMessage = true;
+		clearTimeout(timeout);
+		timeout = setTimeout(() => {
+			showMessage = false;
+		}, 4000);
+	};
+
+	$: messageChanged($message);
 
 	const addNewBuilding = (typeId: number) => {
 		$selectedUnits.units = [];
@@ -49,7 +62,7 @@
 			euler: new Euler(),
 			rotateDestination: new Quaternion(),
 			state: 'idle',
-			color: 'white',
+			color: '#ff7624',
 			hold: false,
 			attackMove: false,
 			health: 10,
@@ -73,6 +86,12 @@
 		date = date;
 	}
 </script>
+
+{#if showMessage}
+	<div id="message">
+		<p>{$message}</p>
+	</div>
+{/if}
 
 <div id="statusBoxes">
 	<div id="resources">
@@ -128,5 +147,22 @@
 		background-color: #0a0a0a;
 		border: 1px solid #1b1b1b;
 		color: white;
+	}
+
+	#message {
+		position: absolute;
+		top: 100px;
+		left: 0;
+		right: 0;
+		width: 200px;
+		text-align: center;
+		margin: 0px auto;
+		background-color: #0a0a0a;
+		border: 1px solid #1b1b1b;
+		color: white;
+	}
+
+	#message > p {
+		margin: 20px;
 	}
 </style>

@@ -11,12 +11,13 @@
 		game,
 		cursorGroundPosition,
 		creditDrops,
-		unplacedBuildingPosition
+		unplacedBuildingPosition,
+		message
 	} from '$lib/stores';
 	import { generateId, isPointInside, findClosestUnit, isPointInSquareRadius } from '$lib/utils';
 	import type { Point, Unit } from '$lib/types';
-
 	import { onDestroy } from 'svelte';
+	import { dev } from '$app/environment';
 
 	import Peformance from './utils/Peformance.svelte';
 	import Units from './Units.svelte';
@@ -49,6 +50,7 @@
 	let gridType: 'grid' | 'circular' = 'grid';
 	let gridWhite = false;
 	let gridRadius = 1;
+	let waveCount = 0;
 
 	const setGridPosition = (su: any, upbp: any, pb: any) => {
 		gridVisible = false;
@@ -72,6 +74,8 @@
 	$: setGridPosition($selectedUnits, $unplacedBuildingPosition, $game.placingBuilding);
 
 	const startWave = () => {
+		waveCount++;
+		$message = 'Wave ' + waveCount;
 		let rotationMatrix = new Matrix4();
 		let rotateDestination = new Quaternion();
 		let startingPosition = new Vector3();
@@ -227,7 +231,7 @@
 		$selectedUnits = { units: sUnits, mouseBtn: 0 };
 	};
 
-	const every10seconds = interval(20);
+	const every10seconds = interval(10);
 
 	useTask((delta) => {
 		movePointOpacity -= delta * 2;
@@ -244,7 +248,9 @@
 	});
 </script>
 
-<Peformance />
+{#if dev}
+	<Peformance />
+{/if}
 
 <Camera />
 
@@ -374,6 +380,7 @@
 	rotation.x={-1.57}
 	scale={0.3}
 	position.x={moveTarget.x}
+	position.y={0.01}
 	position.z={moveTarget.z}
 >
 	<T.RingGeometry args={[0.8, 1, 24, 1]} />

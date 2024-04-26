@@ -9,6 +9,10 @@
 <style>
 	:global(body) {
 		margin: 0;
+		font-family: 'Plus Jakarta Sans', sans-serif;
+		font-optical-sizing: auto;
+		font-weight: 700;
+		font-style: normal;
 	}
 
 	div {
