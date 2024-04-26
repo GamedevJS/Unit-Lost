@@ -254,7 +254,7 @@
 		width: 50px;
 		border: 1px solid #8d8d8d;
 		margin: 3px;
-		background-image: url('unitIcon.png');
+		background-image: url('/unitIcon.png');
 		background-size: contain;
 	}
 
