@@ -113,6 +113,7 @@
 		<p class="withImage" style="background-image:url('intro3.png')">
 			Collect credits from around the map.
 		</p>
+		<p>Power plants will power buildings within certain radius.</p>
 		<p>It's game over when your citidel is destroyed.</p>
 		<button on:click={() => ($game.showWelcomeMessage = false)}>Dismiss</button>
 	</div>
