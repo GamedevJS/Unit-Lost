@@ -13,6 +13,7 @@
 	import { Vector3, InstancedMesh as InstancedMeshType, Matrix4, SRGBColorSpace } from 'three';
 	import { generateGrid, isPointInSquareRadius } from '$lib/utils';
 	import type { Unit, SelectedUnits } from '$lib/types';
+	import { interval } from '$lib/animation';
 
 	export let moveTarget: Vector3;
 
@@ -22,6 +23,7 @@
 	let unitsMesh: InstancedMeshType;
 	let attackPointOpacity = 0;
 	let attackPoint = new Vector3();
+	let toggleRed = false;
 	const displacement = new Vector3();
 	const velocity = new Vector3();
 	const rotationMatrix = new Matrix4();
@@ -54,10 +56,12 @@
 		} else {
 			if (su.units.length < 1) return;
 			let targetedEnemyId = '';
+			let saveSelected: Unit[] = [];
 			$units.forEach((unit, index) => {
 				if (unit.selected) {
 					unit = setStateMoving(unit, su.units[0].id);
 					targetedEnemyId = su.units[0].id;
+					saveSelected.push(unit);
 				}
 			});
 			if (targetedEnemyId) {
@@ -66,6 +70,7 @@
 				attackPoint = targetedEnemy.currentPosition;
 				attackPointOpacity = 1;
 			}
+			$selectedUnits.units = saveSelected;
 		}
 		$units = $units;
 	};
@@ -215,6 +220,8 @@
 		return unit;
 	};
 
+	const everyQuaterSecond = interval(0.25);
+
 	let foundEnemies: Unit[] = [];
 	let allFoundEnemies: Unit[] = [];
 	let savedFoundEnemies: Unit[] = [];
@@ -223,6 +230,11 @@
 	let targetIndex: number | undefined;
 	useTask((delta) => {
 		time += delta;
+
+		everyQuaterSecond(delta, () => {
+			toggleRed = !toggleRed;
+		});
+
 		savedFoundEnemies = allFoundEnemies;
 		allFoundEnemies = [];
 		$units.forEach((unit, index, object) => {
@@ -327,6 +339,7 @@
 					let ci = findCloseCreditIndex(unit);
 					if (ci > -1) {
 						$game.credits += $creditDrops[ci].creditAmount;
+						$message = '+ ' + $creditDrops[ci].creditAmount + ' credits';
 						$creditDrops.splice(ci, 1);
 						$creditDrops = $creditDrops;
 					}
@@ -396,7 +409,7 @@
 					<Instance
 						scale={0.2}
 						position={[unit.currentPosition.x, 0.25, unit.currentPosition.z]}
-						color={unit.color}
+						color={unit.state === 'attacking' && toggleRed ? 'red' : unit.color}
 						rotation.x={unit.euler.x}
 						rotation.y={unit.euler.y}
 						rotation.z={unit.euler.z}
@@ -444,7 +457,7 @@
 					<Instance
 						position={[unit.currentPosition.x, 0, unit.currentPosition.z]}
 						color={unit.color}
-						scale={[1, 1, 1]}
+						scale={[1.1, 1.1, 1.1]}
 						rotation.y={1.57}
 					/>
 				{/if}

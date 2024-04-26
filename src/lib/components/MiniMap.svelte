@@ -41,7 +41,7 @@
 					3
 				);
 			} else if (unit.visible) {
-				unitsCanvasContext.fillStyle = 'lightBlue';
+				unitsCanvasContext.fillStyle = '#ff0569';
 				unitsCanvasContext.fillRect(
 					((unit.currentPosition.x + 25) / 50) * 200,
 					((unit.currentPosition.z + 25) / 50) * 200,

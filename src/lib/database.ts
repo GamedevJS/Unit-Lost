@@ -1,20 +1,24 @@
 export const data: any = {
 	units: {
 		'1': {
-			name: 'robot',
-			cost: 0
+			name: 'Robot',
+			cost: 0,
+			health: 10
 		},
 		'101': {
-			name: 'citidel',
-			cost: 0
+			name: 'Citidel',
+			cost: 0,
+			health: 100
 		},
 		'102': {
-			name: 'power plant',
-			cost: 20
+			name: 'Power Plant',
+			cost: 20,
+			health: 30
 		},
 		'103': {
-			name: 'supply depot',
-			cost: 40
+			name: 'Supply Depot',
+			cost: 40,
+			health: 20
 		}
 	}
 };

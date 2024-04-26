@@ -25,6 +25,7 @@
 	import SplatMaterial from '$lib/components/materials/splat/SplatMaterial.svelte';
 	import MiniMap from './MiniMap.svelte';
 	import { interval } from '$lib/animation';
+	import { data } from '$lib/database';
 
 	interactivity();
 
@@ -138,8 +139,8 @@
 		color: 'white',
 		hold: false,
 		attackMove: false,
-		health: 100,
-		maxHealth: 100,
+		health: data.units[101].health,
+		maxHealth: data.units[101].health,
 		visible: false,
 		distance: 0,
 		isBuilding: true,
@@ -161,8 +162,8 @@
 		color: 'white',
 		hold: false,
 		attackMove: false,
-		health: 10,
-		maxHealth: 10,
+		health: data.units[102].health,
+		maxHealth: data.units[102].health,
 		visible: false,
 		distance: 0,
 		isBuilding: true
@@ -368,15 +369,15 @@
 	{#await blendImage then blendImage}
 		<SplatMaterial
 			colors={[
-				[0.051, 0.055, 0.09],
-				[0.059, 0.071, 0.11],
-				[0.071, 0.078, 0.129]
+				[0.063, 0.067, 0.11],
+				[0.071, 0.086, 0.133],
+				[0.086, 0.094, 0.157]
 			]}
 			repeat={18}
 			{blendImage}
 			{canvasTexture}
 			noiseOffset={time / 5}
-			opacity={0.2}
+			opacity={0.3}
 		/>
 	{/await}
 </T.Mesh>

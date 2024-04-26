@@ -7,7 +7,8 @@
 </div>
 
 <style>
-	:global(body) {
+	:global(body),
+	:global(button) {
 		margin: 0;
 		font-family: 'Plus Jakarta Sans', sans-serif;
 		font-optical-sizing: auto;

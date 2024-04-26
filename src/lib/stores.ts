@@ -3,7 +3,7 @@ import type { Unit, SelectedUnits, CreditDrop } from '$lib/types';
 
 export const game = writable({
 	dev: false,
-	useEdgeCamera: false,
+	useEdgeCamera: true,
 	placingBuilding: false,
 	credits: 50,
 	supply: 3,

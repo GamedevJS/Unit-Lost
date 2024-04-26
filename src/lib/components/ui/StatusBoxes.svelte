@@ -38,8 +38,8 @@
 			color: 'white',
 			hold: false,
 			attackMove: false,
-			health: 10,
-			maxHealth: 10,
+			health: data.units[typeId].health,
+			maxHealth: data.units[typeId].health,
 			distance: 0,
 			visible: false,
 			isBuilding: true,
@@ -112,35 +112,57 @@
 
 <div id="statusBoxes">
 	<div id="resources">
-		Time: {date.getMinutes()}:{(date.getSeconds() < 10 ? '0' : '') + date.getSeconds()}<br />
-		Credits: {$game.credits}<br />
-		Supply: {$game.unitCount}/{$game.supply}<br />
+		<small>Time:</small>
+		<div>{date.getMinutes()}:{(date.getSeconds() < 10 ? '0' : '') + date.getSeconds()}</div>
+		<small>Credits:</small>
+		<div>{$game.credits}</div>
+		<small>Supply:</small>
+		<div>{$game.unitCount}/{$game.supply}</div>
 	</div>
 	{#if $selectedUnits.units.length > 0}
 		<div id="selectedUnit">
-			{#each $units as unit}
-				{#if unit.selected}
-					Unit: {data.units[unit.typeId.toString()].name}<br />
-					Health: {Math.ceil(unit.health)} / {unit.maxHealth}<br />
-					{#if unit.isBuilding}
-						Power: {unit.hasPower || unit.typeId === 102 ? 'on' : 'off'}<br />
+			{#if $selectedUnits.units.length > 1}
+				<div id="unitsGroup">
+					{#each $units as unit}
+						{#if unit.selected}
+							<div></div>
+						{/if}
+					{/each}
+				</div>
+			{:else}
+				{#each $units as unit}
+					{#if unit.selected}
+						<h3>{data.units[unit.typeId.toString()].name}</h3>
+						<small>Health: </small>
+						<div class="info">{Math.ceil(unit.health)} / {unit.maxHealth}</div>
+						{#if unit.isBuilding}
+							<small>Power: </small>
+							<div>{unit.hasPower || unit.typeId === 102 ? 'online' : 'offline'}</div>
+						{/if}
 					{/if}
-				{/if}
-			{/each}
+				{/each}
+			{/if}
 		</div>
 	{/if}
 	{#if $selectedUnits.units.length === 1 && $selectedUnits.units[0].isBuilding}
 		<div id="selectedUnitOptions">
 			{#if $selectedUnits.units[0].typeId === 101}
-				<button on:click={() => addNewBuilding(102)}>Add power station</button><br />
-				<button on:click={() => addNewBuilding(103)} disabled={!$selectedUnits.units[0].hasPower}
-					>Add supply depot</button
-				><br />
+				<button on:click={() => addNewBuilding(102)} disabled={$game.credits < data.units[102].cost}
+					>Build power station</button
+				>
+				<small>cost: 20 credits</small>
+				<button
+					on:click={() => addNewBuilding(103)}
+					disabled={!$selectedUnits.units[0].hasPower || $game.credits < data.units[103].cost}
+					>Build supply depot</button
+				>
+				<small>cost: 40 credits</small>
 				<button
 					on:click={() => addNewUnit(1)}
 					disabled={$game.unitCount >= $game.supply || !$selectedUnits.units[0].hasPower}
 					>Build Robot</button
 				>
+				<small>cost: 1 supply</small>
 			{:else}
 				<button on:click={() => deleteBuilding($selectedUnits.units[0].id)}>Remove building</button>
 			{/if}
@@ -149,6 +171,26 @@
 </div>
 
 <style>
+	button {
+		display: block;
+		background-color: #303030;
+		inline-size: 100%;
+		color: white;
+		padding: 10px;
+		border: 0;
+		border-radius: 5px;
+		cursor: pointer;
+	}
+
+	button:disabled {
+		background-color: #161616;
+		color: rgb(82, 82, 82);
+	}
+
+	h3 {
+		margin-top: 0px;
+	}
+
 	#statusBoxes {
 		position: absolute;
 		bottom: 20px;
@@ -158,12 +200,25 @@
 	}
 
 	#statusBoxes > div {
+		min-width: 100px;
 		height: 180px;
 		margin-right: 20px;
 		padding: 20px;
 		background-color: #0a0a0a;
 		border: 1px solid #1b1b1b;
 		color: white;
+	}
+
+	#resources > small,
+	#selectedUnit > small {
+		display: block;
+		color: gray;
+	}
+
+	#resources > div,
+	#selectedUnit > .info {
+		display: block;
+		margin: 5px 0 15px;
 	}
 
 	.message {
@@ -185,5 +240,27 @@
 
 	#gameOver {
 		top: 300px;
+	}
+
+	#unitsGroup {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		max-width: 400px;
+	}
+
+	#unitsGroup > div {
+		height: 50px;
+		width: 50px;
+		border: 1px solid #8d8d8d;
+		margin: 3px;
+		background-image: url('unitIcon.png');
+		background-size: contain;
+	}
+
+	#selectedUnitOptions > small {
+		color: gray;
+		margin-bottom: 10px;
+		display: block;
 	}
 </style>
