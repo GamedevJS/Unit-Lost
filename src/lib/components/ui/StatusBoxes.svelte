@@ -262,7 +262,7 @@
 
 	.welcomeMessage {
 		position: absolute;
-		top: 100px;
+		top: 50px;
 		left: 0;
 		right: 0;
 		width: 500px;
@@ -275,14 +275,14 @@
 	}
 
 	.welcomeMessage > p {
-		margin: 30px 0;
+		margin: 20px 0;
 	}
 
 	p.withImage {
 		margin: 20px 0;
-		height: 80px;
+		height: 50px;
 		background-repeat: no-repeat;
-		background-size: 80px;
+		background-size: 50px;
 		padding-left: 120px;
 	}
 
